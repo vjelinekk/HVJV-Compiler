@@ -35,8 +35,14 @@
                     </execution>
                 </executions>
                 <configuration>
+                    <visitor>true</visitor> <!-- generate visitor -->
+                    <listener>true</listener> <!-- generate listener -->
+                    <arguments>
+                        <argument>-package</argument>
+                        <argument>grammar</argument> <!-- package for generated files -->
+                    </arguments>
                     <sourceDirectory>src/main/antlr4</sourceDirectory> <!-- your grammar files directory -->
-                    <outputDirectory>target/generated-sources/antlr4</outputDirectory> <!-- output directory for generated files -->
+                    <outputDirectory>target/generated-sources/antlr4/grammar</outputDirectory> <!-- output directory for generated files -->
                 </configuration>
             </plugin>
 
