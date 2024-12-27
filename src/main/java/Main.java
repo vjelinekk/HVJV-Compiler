@@ -1,28 +1,50 @@
+import compiler.Compiler;
 import org.antlr.v4.runtime.CharStream;
-import org.antlr.v4.runtime.CharStreams;
-import org.antlr.v4.runtime.CommonTokenStream;
-import org.antlr.v4.runtime.tree.ParseTree;
+import validation.CompilerInputValidation;
 
+import java.io.IOException;
+
+/**
+ * The main class of the HVJV compiler.
+ */
 public class Main {
+    /**
+     * The main method of the HVJV compiler.
+     * @param args The command line arguments.
+     */
     public static void main(String[] args) {
-        String inputFile = args[0];
-        String outputFile = args[1];
-
-        CharStream input;
-
-        try {
-            input = CharStreams.fromFileName(inputFile);
-        } catch (Exception e) {
-            System.out.println("Error: File not found.");
+        if (args.length != 2) {
+            System.err.println("Invalid number of arguments.");
+            printUsage();
             return;
         }
 
-        HVJVGrammarLexer lexer = new HVJVGrammarLexer(input);
-        CommonTokenStream tokens = new CommonTokenStream(lexer);
-        HVJVGrammarParser parser = new HVJVGrammarParser(tokens);
+        String inputFile = args[0];
+        String outputFile = args[1];
+        CompilerInputValidation compilerInputValidation = new CompilerInputValidation(inputFile, outputFile);
 
-        ParseTree tree = parser.start();
+        CharStream input;
+        try {
+            compilerInputValidation.validateCompilerInput();
+            input = compilerInputValidation.getInputFileStream();
+        } catch (IllegalArgumentException e) {
+            System.err.println("Error: " + e.getMessage());
+            printUsage();
+            return;
+        } catch (IOException e) {
+            System.err.println("Could not read input file.");
+            printUsage();
+            return;
+        }
 
-        System.out.println(tree.toStringTree(parser));
+        Compiler compiler = new Compiler(input, outputFile);
+        compiler.compile();
+    }
+
+    /**
+     * Prints the usage of the HVJV compiler.
+     */
+    private static void printUsage() {
+        System.err.println("Usage: java -jar HVJV.jar <input file> <output file>");
     }
 }

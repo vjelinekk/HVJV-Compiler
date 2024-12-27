@@ -4,7 +4,7 @@ grammar HVJVGrammar;
 // lexer rules
 ////////////////////////////////////////////////////////////////////////////////
 // types
-BOOLEAN: 'bool';
+BOOL: 'bool';
 INT: 'int';
 VOID: 'void';
 
@@ -69,7 +69,7 @@ COMMENT: '//' ~[\r\n]* -> skip;
 ////////////////////////////////////////////////////////////////////////////////
 // parser rules
 ////////////////////////////////////////////////////////////////////////////////
-start
+program
     : functions?
     ;
 
@@ -78,7 +78,7 @@ identifier
     ;
 
 dataType
-    : BOOLEAN
+    : BOOL
     | INT
     ;
 
@@ -131,18 +131,24 @@ statements
     ;
 
 statement
-    : ifStatement
-    | ifElseStatement
-    | forStatement
-    | whileStatement
-    | declaration SEMICOLON
-    | assignment SEMICOLON
-    | ternaryOperatorAssignment SEMICOLON
-    | ternaryOperatorExpression SEMICOLON
-    | GOTO identifier SEMICOLON
-    | functionCall SEMICOLON
-    | RETURN SEMICOLON
-    | RETURN expression SEMICOLON
+    : ifStatement #statementIf
+    | ifElseStatement #statementIfElse
+    | forStatement #statementFor
+    | whileStatement #statementWhile
+    | declaration SEMICOLON #statementDeclaration
+    | assignment SEMICOLON #statementAssignment
+    | ternaryOperatorAssignment SEMICOLON #statementTernaryOperatorAssignment
+    // TODO: This rule is probably useless and should be removed
+    | ternaryOperatorExpression SEMICOLON #statementTernaryOperatorExpression
+    | GOTO label SEMICOLON #statementGoto
+    | label COLON #statementLabel
+    | functionCall SEMICOLON #statementFunctionCall
+    | RETURN SEMICOLON #statementReturn
+    | RETURN expression SEMICOLON #statementReturnExpression
+    ;
+
+label
+    : WORD
     ;
 
 ifStatement
@@ -173,6 +179,7 @@ ternaryOperatorAssignment
     : identifier ASSIGN expression QUESTION expression COLON expression
     ;
 
+// TODO: This rule is probably useless and should be removed
 ternaryOperatorExpression
     : expression QUESTION expression COLON expression
     ;
