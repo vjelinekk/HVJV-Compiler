@@ -1,6 +1,9 @@
-package compiler.ast.model.statements;
+package compiler.ast.model.flow;
 
 import compiler.ast.model.expression.Expression;
+import compiler.ast.model.variables.Assignment;
+import compiler.ast.model.variables.Declaration;
+import compiler.ast.model.statements.Statements;
 
 public class ForStatement {
     private final Declaration declaration;

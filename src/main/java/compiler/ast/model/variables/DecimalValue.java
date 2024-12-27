@@ -1,4 +1,4 @@
-package compiler.ast.model.expression;
+package compiler.ast.model.variables;
 
 import compiler.ast.enums.ESignSymbol;
 
@@ -20,6 +20,6 @@ public class DecimalValue {
     }
 
     public String toString() {
-        return signSymbol + "" + value;
+        return signSymbol.getTranslation() + value;
     }
 }

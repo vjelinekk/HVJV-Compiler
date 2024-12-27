@@ -1,6 +1,7 @@
-package compiler.ast.model.statements;
+package compiler.ast.model.flow;
 
 import compiler.ast.model.expression.Expression;
+import compiler.ast.model.statements.Statements;
 
 public class IfElseStatement {
     private final Expression condition;

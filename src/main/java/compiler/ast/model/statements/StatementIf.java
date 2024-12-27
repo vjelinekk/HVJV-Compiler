@@ -1,6 +1,7 @@
 package compiler.ast.model.statements;
 
 import compiler.ast.enums.EStatementType;
+import compiler.ast.model.flow.IfStatement;
 
 public class StatementIf extends Statement {
     private final IfStatement ifStatement;

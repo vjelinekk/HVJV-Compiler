@@ -2,7 +2,7 @@ package compiler.ast.visitor;
 
 import compiler.ast.enums.EDataType;
 import compiler.ast.model.expression.Expression;
-import compiler.ast.model.statements.Declaration;
+import compiler.ast.model.variables.Declaration;
 import grammar.HVJVGrammarBaseVisitor;
 import grammar.HVJVGrammarParser;
 

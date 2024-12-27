@@ -1,6 +1,6 @@
 package compiler.ast.visitor;
 
-import compiler.ast.model.statements.IfElseStatement;
+import compiler.ast.model.flow.IfElseStatement;
 import grammar.HVJVGrammarBaseVisitor;
 import grammar.HVJVGrammarParser;
 

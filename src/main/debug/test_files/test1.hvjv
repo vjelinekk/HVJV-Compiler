@@ -13,7 +13,25 @@ int main() {
         return 0;
     }
 
-    return 0;
+    a = x > 1 ? 1 : 0;
+
+    // x > 1 ? a = 1 : a = 0;
+
+    test:
+
+    goto test;
+
+    hello(3 * 4, 2 / 3, 3 + 1, 4 - 1);
+
+    bool x = true && false || true;
+
+    bool y = 10 > 5 && 5 < 10 || 10 == 10;
+
+    calling(id);
+
+    int z = test((a + b), 2);
+
+    return -(a + b);
 }
 
 int test(int a, int b) {

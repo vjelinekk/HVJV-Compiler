@@ -1,6 +1,7 @@
 package compiler.ast.model.statements;
 
 import compiler.ast.enums.EStatementType;
+import compiler.ast.model.variables.Declaration;
 
 public class StatementDeclaration extends Statement {
     private final Declaration declaration;

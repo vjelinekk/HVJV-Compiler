@@ -1,7 +1,7 @@
 package compiler.ast.visitor;
 
 import compiler.ast.model.expression.Expression;
-import compiler.ast.model.statements.Assignment;
+import compiler.ast.model.variables.Assignment;
 import grammar.HVJVGrammarBaseVisitor;
 import grammar.HVJVGrammarParser;
 

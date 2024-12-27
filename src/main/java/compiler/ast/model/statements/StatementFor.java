@@ -1,6 +1,7 @@
 package compiler.ast.model.statements;
 
 import compiler.ast.enums.EStatementType;
+import compiler.ast.model.flow.ForStatement;
 
 public class StatementFor extends Statement {
     private final ForStatement forStatement;

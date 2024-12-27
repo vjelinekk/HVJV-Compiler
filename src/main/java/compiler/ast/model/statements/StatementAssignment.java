@@ -1,6 +1,7 @@
 package compiler.ast.model.statements;
 
 import compiler.ast.enums.EStatementType;
+import compiler.ast.model.variables.Assignment;
 
 public class StatementAssignment extends Statement {
     private final Assignment assignment;

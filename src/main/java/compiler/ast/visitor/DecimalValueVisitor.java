@@ -1,7 +1,7 @@
 package compiler.ast.visitor;
 
 import compiler.ast.enums.ESignSymbol;
-import compiler.ast.model.expression.DecimalValue;
+import compiler.ast.model.variables.DecimalValue;
 import grammar.HVJVGrammarBaseVisitor;
 import grammar.HVJVGrammarParser;
 

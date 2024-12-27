@@ -1,4 +1,4 @@
-package compiler.ast.model.statements;
+package compiler.ast.model.variables;
 
 import compiler.ast.enums.EDataType;
 import compiler.ast.model.expression.Expression;

@@ -36,6 +36,37 @@ public class StatementVisitor extends HVJVGrammarBaseVisitor<Statement> {
     }
 
     @Override
+    public Statement visitStatementTernaryOperatorAssignment(HVJVGrammarParser.StatementTernaryOperatorAssignmentContext ctx) {
+        return new StatementTernaryOperatorAssignment(
+                new TernaryOperatorAssignmentVisitor().visit(ctx.ternaryOperatorAssignment()),
+                ctx.getStart().getLine()
+        );
+    }
+
+    @Override
+    public Statement visitStatementTernaryOperatorExpression(HVJVGrammarParser.StatementTernaryOperatorExpressionContext ctx) {
+        return new StatementTernaryOperatorExpression(
+                new TernaryOperatorExpressionVisitor().visit(ctx.ternaryOperatorExpression()),
+                ctx.getStart().getLine()
+        );
+    }
+
+    @Override
+    public Statement visitStatementGoto(HVJVGrammarParser.StatementGotoContext ctx) {
+        return new StatementGoto(ctx.label().getText(), ctx.getStart().getLine());
+    }
+
+    @Override
+    public Statement visitStatementLabel(HVJVGrammarParser.StatementLabelContext ctx) {
+        return new StatementLabel(ctx.label().getText(), ctx.getStart().getLine());
+    }
+
+    @Override
+    public Statement visitStatementFunctionCall(HVJVGrammarParser.StatementFunctionCallContext ctx) {
+        return new StatementFunctionCall(new FunctionCallVisitor().visit(ctx.functionCall()), ctx.getStart().getLine());
+    }
+
+    @Override
     public Statement visitStatementReturn(HVJVGrammarParser.StatementReturnContext ctx) {
         return new StatementReturn(ctx.getStart().getLine());
     }

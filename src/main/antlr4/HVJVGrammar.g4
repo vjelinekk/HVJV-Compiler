@@ -138,9 +138,10 @@ statement
     | declaration SEMICOLON #statementDeclaration
     | assignment SEMICOLON #statementAssignment
     | ternaryOperatorAssignment SEMICOLON #statementTernaryOperatorAssignment
+    // TODO: This rule is probably useless and should be removed
     | ternaryOperatorExpression SEMICOLON #statementTernaryOperatorExpression
     | GOTO label SEMICOLON #statementGoto
-    | label SEMICOLON #statementLabel
+    | label COLON #statementLabel
     | functionCall SEMICOLON #statementFunctionCall
     | RETURN SEMICOLON #statementReturn
     | RETURN expression SEMICOLON #statementReturnExpression
@@ -178,6 +179,7 @@ ternaryOperatorAssignment
     : identifier ASSIGN expression QUESTION expression COLON expression
     ;
 
+// TODO: This rule is probably useless and should be removed
 ternaryOperatorExpression
     : expression QUESTION expression COLON expression
     ;

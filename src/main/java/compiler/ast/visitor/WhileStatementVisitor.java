@@ -1,6 +1,6 @@
 package compiler.ast.visitor;
 
-import compiler.ast.model.statements.WhileStatement;
+import compiler.ast.model.flow.WhileStatement;
 import grammar.HVJVGrammarBaseVisitor;
 import grammar.HVJVGrammarParser;
 

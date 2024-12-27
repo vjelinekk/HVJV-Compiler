@@ -1,6 +1,7 @@
 package compiler.ast.model.statements;
 
 import compiler.ast.enums.EStatementType;
+import compiler.ast.model.flow.WhileStatement;
 
 public class StatementWhile extends Statement {
     private final WhileStatement whileStatement;

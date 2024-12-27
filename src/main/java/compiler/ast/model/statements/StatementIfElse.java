@@ -1,6 +1,7 @@
 package compiler.ast.model.statements;
 
 import compiler.ast.enums.EStatementType;
+import compiler.ast.model.flow.IfElseStatement;
 
 public class StatementIfElse extends Statement {
     private final IfElseStatement ifElseStatement;
