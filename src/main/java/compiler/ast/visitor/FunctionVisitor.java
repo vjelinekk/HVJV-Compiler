@@ -2,7 +2,9 @@ package compiler.ast.visitor;
 
 import compiler.ast.enums.EReturnType;
 import compiler.ast.model.functions.Function;
+import compiler.ast.model.functions.FunctionBlock;
 import compiler.ast.model.functions.Parameters;
+import compiler.ast.model.statements.Statements;
 import grammar.HVJVGrammarBaseVisitor;
 import grammar.HVJVGrammarParser;
 
@@ -17,7 +19,8 @@ public class FunctionVisitor extends HVJVGrammarBaseVisitor<Function> {
         if (ctx.parameters() != null) {
             parameters = new ParametersVisitor().visit(ctx.parameters());
         }
+        FunctionBlock functionBlock = new FunctionBlockVisitor().visit(ctx.functionBlock());
 
-        return new Function(returnType, identifier, parameters);
+        return new Function(returnType, identifier, parameters, functionBlock);
     }
 }

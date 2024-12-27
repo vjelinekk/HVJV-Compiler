@@ -6,11 +6,18 @@ public class Function {
     private final EReturnType returnType;
     private final String identifier;
     private final Parameters parameters;
+    private final FunctionBlock functionBlock;
 
-    public Function(EReturnType returnType, String identifier, Parameters parameters) {
+    public Function(
+            EReturnType returnType,
+            String identifier,
+            Parameters parameters,
+            FunctionBlock functionBlock
+    ) {
         this.returnType = returnType;
         this.identifier = identifier;
         this.parameters = parameters;
+        this.functionBlock = functionBlock;
     }
 
     public EReturnType getReturnType() {
@@ -25,9 +32,13 @@ public class Function {
         return parameters;
     }
 
+    public FunctionBlock getFunctionBlock() {
+        return functionBlock;
+    }
+
     public String toString() {
         String parameters = this.parameters == null ? "" : this.parameters.toString();
 
-        return returnType + " " + identifier + "(" + parameters + ")";
+        return returnType + " " + identifier + "(" + parameters + ")" + " {\n" + functionBlock.toString() + "}\n";
     }
 }

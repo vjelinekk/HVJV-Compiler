@@ -131,18 +131,23 @@ statements
     ;
 
 statement
-    : ifStatement
-    | ifElseStatement
-    | forStatement
-    | whileStatement
-    | declaration SEMICOLON
-    | assignment SEMICOLON
-    | ternaryOperatorAssignment SEMICOLON
-    | ternaryOperatorExpression SEMICOLON
-    | GOTO identifier SEMICOLON
-    | functionCall SEMICOLON
-    | RETURN SEMICOLON
-    | RETURN expression SEMICOLON
+    : ifStatement #statementIf
+    | ifElseStatement #statementIfElse
+    | forStatement #statementFor
+    | whileStatement #statementWhile
+    | declaration SEMICOLON #statementDeclaration
+    | assignment SEMICOLON #statementAssignment
+    | ternaryOperatorAssignment SEMICOLON #statementTernaryOperatorAssignment
+    | ternaryOperatorExpression SEMICOLON #statementTernaryOperatorExpression
+    | GOTO label SEMICOLON #statementGoto
+    | label SEMICOLON #statementLabel
+    | functionCall SEMICOLON #statementFunctionCall
+    | RETURN SEMICOLON #statementReturn
+    | RETURN expression SEMICOLON #statementReturnExpression
+    ;
+
+label
+    : WORD
     ;
 
 ifStatement
