@@ -145,6 +145,7 @@ statement
     | functionCall SEMICOLON #statementFunctionCall
     | RETURN SEMICOLON #statementReturn
     | RETURN expression SEMICOLON #statementReturnExpression
+    //| functionBlock #statementBlock
     ;
 
 label

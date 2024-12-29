@@ -16,9 +16,6 @@ public class Main {
      * @param args The command line arguments.
      */
     public static void main(String[] args) {
-        debug();
-        if(true)
-            return;
 
         if (args.length != 2) {
             System.err.println("Invalid number of arguments.");
@@ -67,5 +64,16 @@ public class Main {
         ;
 
         System.out.println("addr:" + st.getItem("A1").getAddress());
+        for(int i = 0; i < 10; i++)
+        {
+            int a = 10;
+        }
+        int i = 10;
+        int a = 10;
+
+        {
+            int b = 10;
+        }
+        int b = 10;
     }
 }
