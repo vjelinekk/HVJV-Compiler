@@ -14,7 +14,7 @@ public class SemanticFunctionsGenerator extends BaseSemanticCodeGenerator<Functi
     public void run() {
         List<Function> functionList = getNode().getFunctions();
         for (Function function : functionList) {
-            SymbolTableItem item = new SymbolTableItem(function.getIdentifier(), 0, 0);
+            SymbolTableItem item = new SymbolTableItem(function.getIdentifier(), getSymbolTable().getCurrentScope(), 0);
             getSymbolTable().addItem(item);
             SemanticFunctionGenerator functionAnalyzer = new SemanticFunctionGenerator(function, getSymbolTable());
             functionAnalyzer.run();

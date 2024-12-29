@@ -14,5 +14,6 @@ public class SemanticFunctionGenerator extends BaseSemanticCodeGenerator<Functio
     }
 
     public void run() {
+        
     }
 }

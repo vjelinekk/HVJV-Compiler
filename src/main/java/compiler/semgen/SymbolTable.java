@@ -42,7 +42,7 @@ public class SymbolTable {
             }
         }
 
-        return null;
+        throw new RuntimeException("Undeclared variable " + identifier);
     }
 
     @Override
