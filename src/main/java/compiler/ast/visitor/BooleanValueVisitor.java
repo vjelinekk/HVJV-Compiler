@@ -7,6 +7,6 @@ import grammar.HVJVGrammarParser;
 public class BooleanValueVisitor extends HVJVGrammarBaseVisitor<BooleanValue> {
     @Override
     public BooleanValue visitBooleanValue(HVJVGrammarParser.BooleanValueContext ctx) {
-        return new BooleanValue(Boolean.parseBoolean(ctx.getText()));
+        return new BooleanValue(ctx.getText().equals("true") ? 1 : 0);
     }
 }

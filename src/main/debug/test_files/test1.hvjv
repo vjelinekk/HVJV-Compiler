@@ -1,8 +1,10 @@
-int main() {
-    {
-        int a = 10;
-        int b = 20;
-    }
+int plus(int a, int b) {
+ int c = a + b;
+ return c;
+}
 
-    return 1;
+void main(int a) {
+    int a = 10;
+    int b = 3 + 5;
+    int c = a + b;
 }

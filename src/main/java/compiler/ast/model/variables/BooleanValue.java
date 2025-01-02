@@ -1,17 +1,17 @@
 package compiler.ast.model.variables;
 
 public class BooleanValue {
-    private final boolean value;
+    private final int value;
 
-    public BooleanValue(boolean value) {
+    public BooleanValue(int value) {
         this.value = value;
     }
 
-    public boolean getValue() {
+    public int getValue() {
         return value;
     }
 
     public String toString() {
-        return value ? "true" : "false";
+        return Integer.toString(value);
     }
 }

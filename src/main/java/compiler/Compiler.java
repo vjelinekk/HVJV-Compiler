@@ -2,6 +2,7 @@ package compiler;
 
 import compiler.ast.model.Program;
 import compiler.ast.visitor.ProgramVisitor;
+import compiler.semgen.CodeBuilder;
 import compiler.semgen.SemanticCodeGenerator;
 import compiler.semgen.SymbolTable;
 import grammar.HVJVGrammarLexer;
@@ -54,5 +55,6 @@ public class Compiler {
         System.out.println(program);
         SemanticCodeGenerator semanticCodeGenerator = new SemanticCodeGenerator(program);
         semanticCodeGenerator.run();
+        CodeBuilder.generateCode(output);
     }
 }
