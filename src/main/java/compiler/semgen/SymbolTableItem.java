@@ -6,7 +6,7 @@ import compiler.semgen.enums.ESymbolTableType;
 
 public class SymbolTableItem {
     private final String id;
-    private final int level;
+    private int level;
     private int address;
     private final ESymbolTableType type;
     private EReturnType returnType;
@@ -44,6 +44,10 @@ public class SymbolTableItem {
 
     public void setAddress(int address) {
         this.address = address;
+    }
+
+    public void setLevel(int level) {
+        this.level = level;
     }
 
     public void setReturnType(EReturnType returnType) {

@@ -1,9 +1,11 @@
 package compiler.semgen;
 
+import compiler.ast.enums.EDataType;
 import compiler.ast.model.statements.Statement;
 import compiler.ast.model.statements.StatementDeclaration;
 import compiler.ast.model.statements.Statements;
 import compiler.semgen.enums.EInstruction;
+import compiler.semgen.enums.ESymbolTableType;
 
 public class SemanticStatementsGenerator extends BaseSemanticCodeGenerator<Statements>{
     public SemanticStatementsGenerator(Statements statements, SymbolTable symbolTable) {
@@ -15,16 +17,16 @@ public class SemanticStatementsGenerator extends BaseSemanticCodeGenerator<State
         for (Statement statement : getNode().getStatements()) {
             switch (statement.getStatementType()) {
                 case DECLARATION:
-                    SemanticExpressionGenerator declarationAnalyzer = new SemanticExpressionGenerator(
-                            ((StatementDeclaration)statement).getDeclaration().getExpression(),
-                            getSymbolTable()
-                    );
+                    StatementDeclaration statementDeclaration = (StatementDeclaration) statement;
+                    getSymbolTable().addItem(new SymbolTableItem(
+                            statementDeclaration.getDeclaration().getIdentifier(),
+                            0, getSymbolTable().assignAddress(),
+                            statementDeclaration.getDeclaration().getDataType()
+                            == EDataType.INT ? ESymbolTableType.INT : ESymbolTableType.BOOL));
 
-                    int res = declarationAnalyzer.evaluate(((StatementDeclaration)statement).getDeclaration().getExpression());
-                    System.out.println("res: " + res);
-
-                    CodeBuilder.addInstruction(new Instruction(EInstruction.LIT, 0, res));
-
+                    SemanticExpressionGenerator.evaluate(statementDeclaration.getDeclaration().getExpression(),
+                                                         getSymbolTable(),
+                                                         statementDeclaration.getDeclaration().getDataType());
                     break;
                 case IF:
 //                    SemanticIfGenerator ifAnalyzer = new SemanticIfGenerator(statement, getSymbolTable());

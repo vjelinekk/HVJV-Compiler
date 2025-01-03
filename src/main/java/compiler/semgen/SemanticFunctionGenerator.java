@@ -36,5 +36,6 @@ public class SemanticFunctionGenerator extends BaseSemanticCodeGenerator<Functio
         SemanticStatementsGenerator statementsAnalyzer = new SemanticStatementsGenerator(statements, getSymbolTable());
         statementsAnalyzer.run();
         getSymbolTable().exitScope();
+        CodeBuilder.addInstruction(new Instruction(EInstruction.RET, 0, 0));
     }
 }
