@@ -2,6 +2,7 @@ package compiler.ast.model.functions;
 
 import compiler.ast.model.expression.Expression;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class Arguments {

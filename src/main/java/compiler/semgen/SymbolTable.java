@@ -1,8 +1,9 @@
 package compiler.semgen;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Stack;
+import compiler.semgen.enums.EInstruction;
+import compiler.semgen.enums.ESymbolTableType;
+
+import java.util.*;
 
 
 public class SymbolTable {
@@ -10,18 +11,29 @@ public class SymbolTable {
         public final Map<String, SymbolTableItem> items;
         public final boolean isFunctionScope;
         private int freeAddress = 3;
+        private LinkedList<Integer> deallocated;
 
         public Scope(boolean isFunctionScope) {
             this.items = new HashMap<>();
             this.isFunctionScope = isFunctionScope;
+            this.deallocated = new LinkedList<>();
         }
 
-        public boolean isFunctionScope() {
-            return isFunctionScope;
+        public void deallocate(Scope scope) {
+            for(SymbolTableItem item : scope.items.values()) {
+                if(item.getType() == ESymbolTableType.BOOL || item.getType() == ESymbolTableType.INT) {
+                    deallocated.add(item.getAddress());
+                }
+            }
+            CodeBuilder.addInstruction(new Instruction(EInstruction.INT, 0, -scope.items.size()));
+
         }
 
         public int assignAddress() {
-            return freeAddress++;
+            if(deallocated.isEmpty())
+                return freeAddress++;
+            else
+                return deallocated.removeFirst();
         }
     }
 
@@ -40,11 +52,23 @@ public class SymbolTable {
         if (scopeStack.size() == 1) {
             throw new RuntimeException("Cannot exit global scope");
         }
-        scopeStack.pop();
+        Scope scope = scopeStack.pop();
+
+        if(!scope.isFunctionScope) {
+            getFunctionScope().deallocate(scope); // Memory optimization
+        }
     }
 
-    public int getCurrentScope() {
-        return scopeStack.size() - 1;
+    private Scope getFunctionScope() {
+        for (int i = scopeStack.size() - 1; i >= 0; i--) {
+            Scope scope = scopeStack.get(i);
+            if (scope.isFunctionScope) return scope;
+        }
+        return null;
+    }
+
+    public boolean isCurrentFunctionScope() {
+        return scopeStack.peek().isFunctionScope;
     }
 
     public void addItem(SymbolTableItem symbolTableItem) {

@@ -26,7 +26,7 @@ public class SemanticStatementsGenerator extends BaseSemanticCodeGenerator<State
         for (Statement statement : getNode().getStatements()) {
             switch (statement.getStatementType()) {
                 case DECLARATION:
-                    createDeclaration(statement);
+                    createDeclaration(((StatementDeclaration)statement).getDeclaration());
                     break;
                 case IF:
                     IfStatement st = ((StatementIf) statement).getIfStatement();
@@ -39,7 +39,7 @@ public class SemanticStatementsGenerator extends BaseSemanticCodeGenerator<State
                     generator.run();
                     getSymbolTable().exitScope();
 
-                    CodeBuilder.getPlaceholderInstruction(placeholder).setArg2(CodeBuilder.getLineNumber());
+                    CodeBuilder.getPlaceholderInstruction(placeholder).setArg2(CodeBuilder.getLineNumber() + 1);
                     break;
                 case IF_ELSE:
                     IfElseStatement ifElseStatement = ((StatementIfElse) statement).getIfElseStatement();
@@ -63,21 +63,35 @@ public class SemanticStatementsGenerator extends BaseSemanticCodeGenerator<State
                     break;
                 case WHILE:
                     WhileStatement whileStatement = ((StatementWhile) statement).getWhileStatement();
+                    getSymbolTable().enterScope(false);
+
+                    int whileStatementStart = CodeBuilder.getLineNumber() + 1;
+                    SemanticExpressionGenerator.evaluate(whileStatement.getExpression(), getSymbolTable());
+                    int whilePlaceholderEnd = CodeBuilder.addPlaceholderInstruction(new Instruction(EInstruction.JMC, 0, 0));
+                    generator = new SemanticStatementsGenerator(whileStatement.getStatements(), getSymbolTable());
+                    generator.run();
+                    getSymbolTable().exitScope();
+                    CodeBuilder.addInstruction(new Instruction(EInstruction.JMP, 0, whileStatementStart));
+                    CodeBuilder.getPlaceholderInstruction(whilePlaceholderEnd).setArg2(CodeBuilder.getLineNumber() + 1);
                     break;
                 case FOR:
                     ForStatement forStatement = ((StatementFor) statement).getForStatement();
-                    createDeclaration(forStatement.getDeclaration());
+                    getSymbolTable().enterScope(false);
 
+                    createDeclaration(forStatement.getDeclaration());
+                    int forStatementStart = CodeBuilder.getLineNumber() + 1;
+                    SemanticExpressionGenerator.evaluate(forStatement.getCondition(), getSymbolTable());
+                    int forPlaceholderEnd = CodeBuilder.addPlaceholderInstruction(new Instruction(EInstruction.JMC, 0, 0));
+                    generator = new SemanticStatementsGenerator(forStatement.getStatements(), getSymbolTable());
+                    generator.run();
+                    createAssignment(forStatement.getAssignment());
+                    getSymbolTable().exitScope();
+                    CodeBuilder.addInstruction(new Instruction(EInstruction.JMP, 0, forStatementStart));
+                    CodeBuilder.getPlaceholderInstruction(forPlaceholderEnd).setArg2(CodeBuilder.getLineNumber() + 1);
                     break;
                 case ASSIGNMENT:
                     Assignment as = ((StatementAssignment) statement).getAssignment();
-                    SymbolTableItem item = getSymbolTable().getItem(as.getIdentifier());
-                    EDataType type = SemanticExpressionGenerator.evaluate(as.getExpression(), getSymbolTable());
-
-                    if (!item.getType().equals(type))
-                        throw new RuntimeException("Trying to assign " + item.getType() + " into " + type + " variable");
-
-                    CodeBuilder.addInstruction(new Instruction(EInstruction.STO, 0, item.getAddress()));
+                    createAssignment(as);
                     break;
                 case FUNCTION_CALL:
                     FunctionCall call = ((StatementFunctionCall) statement).getFunctionCall();
@@ -120,20 +134,28 @@ public class SemanticStatementsGenerator extends BaseSemanticCodeGenerator<State
     }
 
     private void createDeclaration(Declaration declaration) {
-        StatementDeclaration statementDeclaration = (StatementDeclaration) statement;
-        getSymbolTable().addItem(new SymbolTableItem(
-                statementDeclaration.getDeclaration().getIdentifier(),
-                0,
+        SymbolTableItem item = new SymbolTableItem(
+                declaration.getIdentifier(), 0,
                 getSymbolTable().assignAddress(),
-                statementDeclaration.getDeclaration().getDataType()
-                        == EDataType.INT ? ESymbolTableType.INT : ESymbolTableType.BOOL));
+                declaration.getDataType() == EDataType.INT ? ESymbolTableType.INT : ESymbolTableType.BOOL);
 
-        EDataType type = SemanticExpressionGenerator.evaluate(
-                statementDeclaration.getDeclaration().getExpression(),
-                getSymbolTable()
-        );
-        if(statementDeclaration.getDeclaration().getDataType() != type) {
-            throw new RuntimeException("Type mismatch: " + statementDeclaration.getDeclaration().getDataType() + " != " + type);
+        getSymbolTable().addItem(item);
+        EDataType type = SemanticExpressionGenerator.evaluate(declaration.getExpression(), getSymbolTable());
+
+        if(declaration.getDataType() != type) {
+            throw new RuntimeException("Type mismatch: " + declaration.getDataType() + " != " + type);
         }
     }
+
+    private void createAssignment(Assignment assignment) {
+        SymbolTableItem item = getSymbolTable().getItem(assignment.getIdentifier());
+        EDataType type = SemanticExpressionGenerator.evaluate(assignment.getExpression(), getSymbolTable());
+
+        if (!item.getType().equals(type))
+            throw new RuntimeException("Trying to assign " + item.getType() + " into " + type + " variable");
+
+        CodeBuilder.addInstruction(new Instruction(EInstruction.STO, 0, item.getAddress()));
+    }
+
+
 }
