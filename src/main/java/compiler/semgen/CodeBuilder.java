@@ -29,6 +29,10 @@ public class CodeBuilder {
         return instructions.size();
     }
 
+    public static Instruction getLastInstruction() {
+        return instructions.get(instructions.size() - 1);
+    }
+
     public static void generateCode(String fileName) {
         try {
             File file = new File(fileName);

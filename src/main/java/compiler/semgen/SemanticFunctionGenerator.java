@@ -34,13 +34,12 @@ public class SemanticFunctionGenerator extends BaseSemanticCodeGenerator<Functio
         }
 
         Statements statements = getNode().getFunctionBlock().getStatements();
-        SemanticStatementsGenerator statementsAnalyzer = new SemanticStatementsGenerator(statements, getSymbolTable());
+        SemanticStatementsGenerator statementsAnalyzer = new SemanticStatementsGenerator(statements, getSymbolTable(), getNode().getReturnType(), -(parametersCount + 1));
         statementsAnalyzer.run();
         getSymbolTable().exitScope();
 
-        if(getNode().getReturnType() != EReturnType.VOID)
-            CodeBuilder.addInstruction(new Instruction(EInstruction.STO, 0, -(parametersCount + 1)));
-
-        CodeBuilder.addInstruction(new Instruction(EInstruction.RET, 0, 0));
+        if (getNode().getReturnType() == EReturnType.VOID && CodeBuilder.getLastInstruction().getInstruction() != EInstruction.RET) {
+            CodeBuilder.addInstruction(new Instruction(EInstruction.RET, 0, 0));
+        }
     }
 }

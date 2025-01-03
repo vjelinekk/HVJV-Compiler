@@ -11,12 +11,30 @@ public class SymbolTable {
         public final Map<String, SymbolTableItem> items;
         public final boolean isFunctionScope;
         private int freeAddress = 3;
-        private LinkedList<Integer> deallocated;
+        private final LinkedList<Integer> deallocated;
+        private final Map<String, Integer> gotoLabels;
 
         public Scope(boolean isFunctionScope) {
             this.items = new HashMap<>();
             this.isFunctionScope = isFunctionScope;
             this.deallocated = new LinkedList<>();
+            this.gotoLabels = new HashMap<>();
+        }
+
+        public void addGotoLabel(String label, int address) {
+            if (gotoLabels.containsKey(label)) {
+                throw new RuntimeException("Label " + label + " already declared in this scope");
+            }
+
+            gotoLabels.put(label, address);
+        }
+
+        public int getGotoLabelAddress(String label) {
+            if (!gotoLabels.containsKey(label)) {
+                throw new RuntimeException("Label " + label + " not declared in this scope");
+            }
+
+            return gotoLabels.get(label);
         }
 
         public void deallocate(Scope scope) {
@@ -26,7 +44,6 @@ public class SymbolTable {
                 }
             }
             CodeBuilder.addInstruction(new Instruction(EInstruction.INT, 0, -scope.items.size()));
-
         }
 
         public int assignAddress() {
@@ -112,6 +129,14 @@ public class SymbolTable {
         }
 
         throw new RuntimeException("Declaration out of function scope");
+    }
+
+    public void addGotoLabel(String label, int address) {
+        scopeStack.peek().addGotoLabel(label, address);
+    }
+
+    public int getGotoLabelAddress(String label) {
+        return scopeStack.peek().getGotoLabelAddress(label);
     }
 
     @Override
