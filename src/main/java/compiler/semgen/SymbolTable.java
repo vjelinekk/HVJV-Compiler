@@ -60,7 +60,6 @@ public class SymbolTable {
 
             SymbolTableItem item = scopeStack.get(i).items.get(identifier);
             if (item != null) {
-                item.setLevel(i);
                 return item;
             }
 

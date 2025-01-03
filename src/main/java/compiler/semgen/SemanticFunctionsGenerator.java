@@ -18,11 +18,12 @@ public class SemanticFunctionsGenerator extends BaseSemanticCodeGenerator<Functi
         for (Function function : functionList) {
             SymbolTableItem item = new SymbolTableItem(
                     function.getIdentifier(),
-                    getSymbolTable().getCurrentScope(),
+                    0,
                     -1,
                     ESymbolTableType.FUNCTION
             );
             item.setReturnType(function.getReturnType());
+            item.setParametersTypes(function.getParametersTypes());
             getSymbolTable().addItem(item);
         }
 

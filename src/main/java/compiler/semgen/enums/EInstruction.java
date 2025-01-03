@@ -10,7 +10,8 @@ public enum EInstruction {
     INT("INT"), // Inicializuje prostor na zásobníku pro proměnné nebo návratové hodnoty.
     JMP("JMP"), // Bezpodmínečný skok na specifikovanou instrukci.
     JMC("JMC"), // Podmíněný skok, pokud je hodnota na vrcholu zásobníku `0`.
-    RET("RET"); // Návrat z procedury – obnoví předchozí stack frame a návratovou adresu.
+    RET("RET"), // Návrat z procedury – obnoví předchozí stack frame a návratovou adresu.
+    NOP("NOP"); // No operation
 
     private final String translation;
 

@@ -22,4 +22,9 @@ public enum EDataType {
     public String getTranslation() {
         return translation;
     }
+
+    public boolean equals(Enum<?> other) {
+        return other.name().equals(this.name());
+    }
+
 }

@@ -16,6 +16,14 @@ public class CodeBuilder {
         instructions.add(instruction);
     }
 
+    public static Instruction getPlaceholderInstruction(int index) {
+        return instructions.get(index);
+    }
+
+    public static int addPlaceholderInstruction(Instruction instruction) {
+        instructions.add(instruction);
+        return instructions.size() - 1;
+    }
 
     public static int getLineNumber() {
         return instructions.size();
@@ -25,7 +33,6 @@ public class CodeBuilder {
         try {
             File file = new File(fileName);
             FileWriter writer = new FileWriter(file);
-
             writer.write( "JMP 0 " + mainAddress + "\n");
 
             for (Instruction instruction : instructions) {
@@ -37,6 +44,5 @@ public class CodeBuilder {
             System.err.println("Error while writing to file: " + e.getMessage());
         }
     }
-
 }
 

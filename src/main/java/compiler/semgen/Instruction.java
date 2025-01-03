@@ -4,8 +4,8 @@ import compiler.semgen.enums.EInstruction;
 
 public class Instruction {
     private final EInstruction instruction;
-    private final int arg1;
-    private final int arg2;
+    private int arg1;
+    private int arg2;
 
     public Instruction(EInstruction instruction, int arg1, int arg2) {
         this.instruction = instruction;
@@ -23,6 +23,16 @@ public class Instruction {
 
     public int getArg2() {
         return arg2;
+    }
+
+    public Instruction setArg1(int arg1) {
+        this.arg1 = arg1;
+        return this;
+    }
+
+    public Instruction setArg2(int arg2) {
+        this.arg2 = arg2;
+        return this;
     }
 
     public String toString() {

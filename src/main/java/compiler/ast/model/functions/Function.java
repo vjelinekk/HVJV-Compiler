@@ -1,6 +1,10 @@
 package compiler.ast.model.functions;
 
+import compiler.ast.enums.EDataType;
 import compiler.ast.enums.EReturnType;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class Function {
     private final EReturnType returnType;
@@ -30,6 +34,20 @@ public class Function {
 
     public Parameters getParameters() {
         return parameters;
+    }
+
+    public List<EDataType> getParametersTypes() {
+        List<EDataType> parametersTypes = new ArrayList<>();
+
+        if (getParameters() == null) {
+            return parametersTypes;
+        }
+
+        for (Parameter parameter : parameters.getParameters()) {
+            parametersTypes.add(parameter.getDataType());
+        }
+
+        return parametersTypes;
     }
 
     public FunctionBlock getFunctionBlock() {

@@ -1,8 +1,10 @@
 import compiler.Compiler;
+import compiler.ast.enums.EDataType;
 import compiler.semgen.CodeBuilder;
 import compiler.semgen.SymbolTable;
 import compiler.semgen.SymbolTableItem;
 import compiler.semgen.enums.EInstruction;
+import compiler.semgen.enums.ESymbolTableType;
 import org.antlr.v4.runtime.CharStream;
 import validation.CompilerInputValidation;
 
@@ -18,7 +20,6 @@ public class Main {
      * @param args The command line arguments.
      */
     public static void main(String[] args) {
-
         if (args.length != 2) {
             System.err.println("Invalid number of arguments.");
             printUsage();

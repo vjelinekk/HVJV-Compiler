@@ -1,6 +1,7 @@
 package compiler.semgen;
 
 import compiler.ast.enums.EDataType;
+import compiler.ast.enums.EReturnType;
 import compiler.ast.model.functions.Function;
 import compiler.ast.model.statements.Statements;
 import compiler.semgen.enums.EInstruction;
@@ -20,7 +21,7 @@ public class SemanticFunctionGenerator extends BaseSemanticCodeGenerator<Functio
         getSymbolTable().enterScope(true); // <<------ new scope here
 
         // Add parameters to symbol table
-        int parametersCount = getNode().getParameters().getParameters().size();
+        int parametersCount = getNode().getParameters() != null ? getNode().getParameters().getParameters().size() : 0;
         for (int i = parametersCount; i > 0; i--) {
             CodeBuilder.addInstruction(new Instruction(EInstruction.LOD, 0, -i));
 
@@ -36,6 +37,10 @@ public class SemanticFunctionGenerator extends BaseSemanticCodeGenerator<Functio
         SemanticStatementsGenerator statementsAnalyzer = new SemanticStatementsGenerator(statements, getSymbolTable());
         statementsAnalyzer.run();
         getSymbolTable().exitScope();
+
+        if(getNode().getReturnType() != EReturnType.VOID)
+            CodeBuilder.addInstruction(new Instruction(EInstruction.STO, 0, -(parametersCount + 1)));
+
         CodeBuilder.addInstruction(new Instruction(EInstruction.RET, 0, 0));
     }
 }
