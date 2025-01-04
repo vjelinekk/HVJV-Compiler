@@ -72,7 +72,10 @@ public class SymbolTable {
         Scope scope = scopeStack.pop();
 
         if(!scope.isFunctionScope) {
-            getFunctionScope().deallocate(scope); // Memory optimization
+            Scope functionScope = getFunctionScope();
+            if (functionScope != null) {
+                functionScope.deallocate(scope);
+            }
         }
     }
 

@@ -93,9 +93,9 @@ public class SemanticStatementsGenerator extends BaseSemanticCodeGenerator<State
                     generator = new SemanticStatementsGenerator(forStatement.getStatements(), getSymbolTable(), returnType, returnAddress);
                     generator.run();
                     createAssignment(forStatement.getAssignment());
-                    getSymbolTable().exitScope();
                     CodeBuilder.addInstruction(new Instruction(EInstruction.JMP, 0, forStatementStart));
                     CodeBuilder.getPlaceholderInstruction(forPlaceholderEnd).setArg2(CodeBuilder.getLineNumber() + 1);
+                    getSymbolTable().exitScope();
                     break;
                 case ASSIGNMENT:
                     Assignment as = ((StatementAssignment) statement).getAssignment();
@@ -148,7 +148,8 @@ public class SemanticStatementsGenerator extends BaseSemanticCodeGenerator<State
                     break;
                 case GOTO:
                     StatementGoto gotoStatement = ((StatementGoto) statement);
-                    CodeBuilder.addInstruction(new Instruction(EInstruction.JMP, 0, getSymbolTable().getGotoLabelAddress(gotoStatement.getLabel())));
+                    int gotoAddress = getSymbolTable().getGotoLabelAddress(gotoStatement.getLabel());
+                    CodeBuilder.addInstruction(new Instruction(EInstruction.JMP, 0, gotoAddress));
                     break;
                 case TERNARY_ASSIGNMENT:
                     TernaryOperatorAssignment ternary = ((StatementTernaryOperatorAssignment) statement).getTernaryOperatorAssignment();
