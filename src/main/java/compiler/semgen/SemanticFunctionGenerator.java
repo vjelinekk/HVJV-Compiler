@@ -7,6 +7,7 @@ import compiler.ast.model.statements.Statements;
 import compiler.semgen.enums.EInstruction;
 import compiler.semgen.enums.ESymbolTableType;
 import compiler.semgen.exception.ExceptionContext;
+import compiler.semgen.exception.GeneralSemanticAnalysisException;
 import compiler.semgen.exception.SemanticAnalysisException;
 import compiler.semgen.symboltable.SymbolTable;
 import compiler.semgen.symboltable.SymbolTableItem;
@@ -38,13 +39,30 @@ public class SemanticFunctionGenerator extends BaseSemanticCodeGenerator<Functio
             ));
         }
 
-        Statements statements = getNode().getFunctionBlock().getStatements();
-        SemanticStatementsGenerator statementsAnalyzer = new SemanticStatementsGenerator(statements, getSymbolTable(), getNode().getReturnType(), -(parametersCount + 1));
-        statementsAnalyzer.run();
-        getSymbolTable().exitScope();
-
-        if (getNode().getReturnType() == EReturnType.VOID && CodeBuilder.getLastInstruction().getInstruction() != EInstruction.RET) {
+        if (getNode().getFunctionBlock() == null) {
+            getSymbolTable().exitScope();
             CodeBuilder.addInstruction(new Instruction(EInstruction.RET, 0, 0));
+            return;
+        }
+
+        Statements statements = getNode().getFunctionBlock().getStatements();
+        SemanticStatementsGenerator statementsAnalyzer = new SemanticStatementsGenerator(
+                statements,
+                getSymbolTable(),
+                getNode().getReturnType(),
+                -(parametersCount + 1)
+        );
+        statementsAnalyzer.run();
+        Instruction lastInstruction = CodeBuilder.getLastInstructionAndRemove();
+        getSymbolTable().exitScope();
+        CodeBuilder.addInstruction(lastInstruction);
+
+        boolean mustReturn = getNode().getReturnType() == EReturnType.BOOL || getNode().getReturnType() == EReturnType.INT;
+        if (!mustReturn && lastInstruction.getInstruction() != EInstruction.RET) {
+            CodeBuilder.addInstruction(new Instruction(EInstruction.RET, 0, 0));
+        }
+        if (mustReturn && lastInstruction.getInstruction() != EInstruction.RET) {
+            throw new GeneralSemanticAnalysisException("Function must return a value", ExceptionContext.getLineNumber(), ExceptionContext.getFunctionName());
         }
     }
 }

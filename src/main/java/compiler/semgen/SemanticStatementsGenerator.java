@@ -14,6 +14,7 @@ import compiler.ast.model.variables.Declaration;
 import compiler.semgen.enums.EInstruction;
 import compiler.semgen.enums.ESymbolTableType;
 import compiler.semgen.exception.ExceptionContext;
+import compiler.semgen.exception.GeneralSemanticAnalysisException;
 import compiler.semgen.exception.SemanticAnalysisException;
 import compiler.semgen.symboltable.SymbolTable;
 import compiler.semgen.symboltable.SymbolTableItem;
@@ -118,44 +119,47 @@ public class SemanticStatementsGenerator extends BaseSemanticCodeGenerator<State
 
                     List<Expression> arguments = call.getArguments().getArguments();
                     if (arguments.size() != fnc.getParametersTypes().size())
-                        throw new SemanticAnalysisException(
+                        throw new GeneralSemanticAnalysisException(
                                 "Arguments count mismatch, expected " + arguments.size() + " got " + fnc.getParametersTypes().size(),
                                 statement.getLineNumber(),
                                 ExceptionContext.getFunctionName()
                         );
 
-                    CodeBuilder.addInstruction(new Instruction(EInstruction.INT, 0, 1));
+                    if (returnType != EReturnType.VOID)
+                        CodeBuilder.addInstruction(new Instruction(EInstruction.INT, 0, 1));
 
                     for (int j = 0; j < arguments.size(); j++) {
                         EDataType paramType = SemanticExpressionEvaluator.evaluate(arguments.get(j), getSymbolTable());
                         if (paramType != fnc.getParametersTypes().get(j))
-                            throw new SemanticAnalysisException(
+                            throw new GeneralSemanticAnalysisException(
                                     "Arguments mismatch expected " + fnc.getParametersTypes().get(j) + " got " + paramType,
                                     statement.getLineNumber(),
                                     ExceptionContext.getFunctionName()
                             );
                     }
+
                     CodeBuilder.addInstruction(new Instruction(EInstruction.CAL, 0, fnc.getAddress()));
-                    CodeBuilder.addInstruction(new Instruction(EInstruction.INT, 0, -arguments.size()));
+                    if (!arguments.isEmpty())
+                        CodeBuilder.addInstruction(new Instruction(EInstruction.INT, 0, -arguments.size()));
 
                     if (fnc.getReturnType() != EReturnType.VOID)
                         CodeBuilder.addInstruction(new Instruction(EInstruction.INT, 0, -1));
                     break;
                 case RETURN:
                     if (returnType != EReturnType.VOID)
-                        throw new SemanticAnalysisException("Trying to return void from NON-VOID function", statement.getLineNumber(), ExceptionContext.getFunctionName());
+                        throw new GeneralSemanticAnalysisException("Trying to return void from NON-VOID function", statement.getLineNumber(), ExceptionContext.getFunctionName());
 
                     CodeBuilder.addInstruction(new Instruction(EInstruction.RET, 0, 0));
                     break;
                 case RETURN_EXPRESSION:
                     if (returnType == EReturnType.VOID)
-                        throw new SemanticAnalysisException("Trying to return value from VOID function", statement.getLineNumber(), ExceptionContext.getFunctionName());
+                        throw new GeneralSemanticAnalysisException("Trying to return value from VOID function", statement.getLineNumber(), ExceptionContext.getFunctionName());
 
                     ExceptionContext.setLineNumber(statement.getLineNumber());
                     EDataType type = SemanticExpressionEvaluator.evaluate(((StatementReturnExpression) statement).getExpression(), getSymbolTable());
                     EDataType returnDataType = returnType == EReturnType.INT ? EDataType.INT : EDataType.BOOL;
                     if (type != returnDataType)
-                        throw new SemanticAnalysisException(
+                        throw new GeneralSemanticAnalysisException(
                                 "Type mismatch trying to return: " + type + " from " + returnType + " function",
                                 statement.getLineNumber(),
                                 ExceptionContext.getFunctionName()
@@ -186,7 +190,7 @@ public class SemanticStatementsGenerator extends BaseSemanticCodeGenerator<State
                     Expression trueExpression = ternary.getTrueExpression();
                     EDataType trueType = SemanticExpressionEvaluator.evaluate(trueExpression, getSymbolTable());
                     if (!item.getType().equals(trueType))
-                        throw new SemanticAnalysisException(
+                        throw new GeneralSemanticAnalysisException(
                                 "Trying to assign " + item.getType() + " into " + trueType + " variable",
                                 statement.getLineNumber(),
                                 ExceptionContext.getFunctionName()
@@ -198,7 +202,7 @@ public class SemanticStatementsGenerator extends BaseSemanticCodeGenerator<State
                     Expression falseExpression = ternary.getFalseExpression();
                     EDataType falseType = SemanticExpressionEvaluator.evaluate(falseExpression, getSymbolTable());
                     if (!item.getType().equals(falseType))
-                        throw new SemanticAnalysisException(
+                        throw new GeneralSemanticAnalysisException(
                                 "Trying to assign " + item.getType() + " into " + falseType + " variable",
                                 statement.getLineNumber(),
                                 ExceptionContext.getFunctionName()
@@ -222,17 +226,17 @@ public class SemanticStatementsGenerator extends BaseSemanticCodeGenerator<State
                 declaration.getDataType() == EDataType.INT ? ESymbolTableType.INT : ESymbolTableType.BOOL);
 
         getSymbolTable().addItem(item);
+        getSymbolTable().checkIfDeclarationIsAfterGotoLabel(CodeBuilder.getLineNumber() + 1);
         EDataType type = SemanticExpressionEvaluator.evaluate(declaration.getExpression(), getSymbolTable());
 
         if(declaration.getDataType() != type) {
-            throw new SemanticAnalysisException(
+            throw new GeneralSemanticAnalysisException(
                     "Type mismatch: " + declaration.getDataType() + " != " + type,
                     ExceptionContext.getLineNumber(),
                     ExceptionContext.getFunctionName()
             );
         }
 
-        System.out.println("adding variable: " + item.getId() + " at address: " + item.getAddress() + " space left:" + getSymbolTable().getCurrentScopeFreeMemory());
         if(hasFreeSpace)
             CodeBuilder.addInstruction(new Instruction(EInstruction.STO, 0, item.getAddress()));
     }
@@ -242,7 +246,7 @@ public class SemanticStatementsGenerator extends BaseSemanticCodeGenerator<State
         EDataType type = SemanticExpressionEvaluator.evaluate(assignment.getExpression(), getSymbolTable());
 
         if (!item.getType().equals(type))
-            throw new SemanticAnalysisException(
+            throw new GeneralSemanticAnalysisException(
                     "Trying to assign " + item.getType() + " into " + type + " variable",
                     ExceptionContext.getLineNumber(),
                     ExceptionContext.getFunctionName()

@@ -1,4 +1,4 @@
-int main() {
+void main() {
     int a = 100;
     int b = 200;
 
@@ -33,14 +33,12 @@ int main() {
                     int q9 = 88;
                     int q10 = 88;
                 }
-
             }
         }
         int f = 900;
         int g = 1001;
     }
     int c = a + b;
-
     int q1 = 69;
     int q2 = 69;
     int q3 = 69;

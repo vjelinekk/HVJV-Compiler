@@ -3,8 +3,8 @@ package compiler.semgen.symboltable;
 import compiler.semgen.CodeBuilder;
 import compiler.semgen.Instruction;
 import compiler.semgen.enums.EInstruction;
-import compiler.semgen.enums.ESymbolTableType;
 import compiler.semgen.exception.ExceptionContext;
+import compiler.semgen.exception.GeneralSemanticAnalysisException;
 import compiler.semgen.exception.SemanticAnalysisException;
 
 import java.util.*;
@@ -39,7 +39,7 @@ public class SymbolTable {
 
         public void addGotoLabel(String label, int address) throws SemanticAnalysisException {
             if (gotoLabels.containsKey(label)) {
-                throw new SemanticAnalysisException(
+                throw new GeneralSemanticAnalysisException(
                         "Label " + label + " already declared in this scope",
                         ExceptionContext.getLineNumber(),
                         ExceptionContext.getFunctionName()
@@ -51,7 +51,7 @@ public class SymbolTable {
 
         public int getGotoLabelAddress(String label) throws SemanticAnalysisException {
             if (!gotoLabels.containsKey(label)) {
-                throw new SemanticAnalysisException(
+                throw new GeneralSemanticAnalysisException(
                         "Label " + label + " not declared in this scope",
                         ExceptionContext.getLineNumber(),
                         ExceptionContext.getFunctionName()
@@ -61,16 +61,27 @@ public class SymbolTable {
             return gotoLabels.get(label);
         }
 
+        public void checkIfDeclarationIsAfterGotoLabel(int address) throws SemanticAnalysisException {
+            for (Map.Entry<String, Integer> entry : gotoLabels.entrySet()) {
+                if (entry.getValue() >= address) {
+                    throw new GeneralSemanticAnalysisException(
+                            "Declaration after goto statement",
+                            ExceptionContext.getLineNumber(),
+                            ExceptionContext.getFunctionName()
+                    );
+                }
+            }
+        }
+
         public void deallocate() {
-            CodeBuilder.addInstruction(new Instruction(EInstruction.INT,0, -allocatedInThisScope));
+            if (allocatedInThisScope > 0)
+                CodeBuilder.addInstruction(new Instruction(EInstruction.INT,0, -allocatedInThisScope));
         }
 
         public void allocateMemory(int variablesCount) {
-            System.out.println("starting scope with " + allocated);
             if(variablesCount > allocated) {
                 allocatedInThisScope = variablesCount - allocated;
                 allocated += allocatedInThisScope;
-                System.out.println("adding " + allocatedInThisScope);
                 CodeBuilder.addInstruction(new Instruction(EInstruction.INT,0, allocatedInThisScope));
             }
         }
@@ -87,7 +98,6 @@ public class SymbolTable {
     public SymbolTable() {
         this.scopeStack = new Stack<>();
         scopeStack.push(new Scope());
-        System.out.println(scopeStack.size());
     }
 
     public void enterScope(boolean isFunctionScope, int variablesCount) {
@@ -102,7 +112,7 @@ public class SymbolTable {
         scopeStack.push(newScope);
     }
 
-    public void exitScope() {
+    public void exitScope() throws GeneralSemanticAnalysisException {
         if (scopeStack.size() == 1) {
             throw new RuntimeException("Cannot exit global scope");
         }
@@ -123,7 +133,7 @@ public class SymbolTable {
 
     public void addItem(SymbolTableItem symbolTableItem) throws SemanticAnalysisException {
         if (scopeStack.peek().items.containsKey(symbolTableItem.getId())) {
-            throw new SemanticAnalysisException(
+            throw new GeneralSemanticAnalysisException(
                     "Variable " + symbolTableItem.getId() + " already declared in this scope",
                     ExceptionContext.getLineNumber(),
                     ExceptionContext.getFunctionName()
@@ -146,7 +156,7 @@ public class SymbolTable {
             }
         }
 
-        throw new SemanticAnalysisException("Undeclared variable " + identifier, ExceptionContext.getLineNumber(), ExceptionContext.getFunctionName());
+        throw new GeneralSemanticAnalysisException("Undeclared variable " + identifier, ExceptionContext.getLineNumber(), ExceptionContext.getFunctionName());
     }
 
     public SymbolTableItem getFromGlobalScope(String identifier) throws SemanticAnalysisException {
@@ -154,7 +164,7 @@ public class SymbolTable {
         if (item != null) {
             return item;
         }
-        throw new SemanticAnalysisException("Undeclared function " + identifier, ExceptionContext.getLineNumber(), ExceptionContext.getFunctionName());
+        throw new GeneralSemanticAnalysisException("Undeclared function " + identifier, ExceptionContext.getLineNumber(), ExceptionContext.getFunctionName());
     }
 
     public int assignAddress() throws SemanticAnalysisException {
@@ -165,7 +175,7 @@ public class SymbolTable {
                 return scope.assignAddress();
         }
 
-        throw new SemanticAnalysisException("Declaration out of function scope", ExceptionContext.getLineNumber(), ExceptionContext.getFunctionName());
+        throw new GeneralSemanticAnalysisException("Declaration out of function scope", ExceptionContext.getLineNumber(), ExceptionContext.getFunctionName());
     }
 
     public int getCurrentScopeFreeMemory() {
@@ -178,6 +188,10 @@ public class SymbolTable {
 
     public int getGotoLabelAddress(String label) throws SemanticAnalysisException {
         return scopeStack.peek().getGotoLabelAddress(label);
+    }
+
+    public void checkIfDeclarationIsAfterGotoLabel(int address) throws SemanticAnalysisException {
+        scopeStack.peek().checkIfDeclarationIsAfterGotoLabel(address);
     }
 
     @Override

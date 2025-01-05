@@ -196,8 +196,8 @@ arguments
 expression
     : expression op=(MULT | DIV) expression    #expMultDiv
     | expression op=(PLUS | MINUS) expression  #expPlusMinus
-    | expression op=(AND | OR) expression      #expAndOr
     | expression op=(EQUAL | NOT_EQUAL | LESS | LESS_EQUAL | GREATER | GREATER_EQUAL) expression #expLogical
+    | expression op=(AND | OR) expression      #expAndOr
     | decimalValue                              #expDecimalValue
     | booleanValue                              #expBooleanValue
     | identifier                                #expIdentifier

@@ -1,17 +1,10 @@
 package compiler.semgen.exception;
 
-public class SemanticAnalysisException extends Exception {
-    private final int lineNumber;
-    private final String functionName;
-
-    public SemanticAnalysisException(String message, int lineNumber, String functionName) {
+public abstract class SemanticAnalysisException extends Exception {
+    public SemanticAnalysisException(String message) {
         super(message);
-        this.lineNumber = lineNumber;
-        this.functionName = functionName;
     }
 
     @Override
-    public String toString() {
-        return "Semantic error in function \"" + functionName + "\" at line " + lineNumber + ": " + getMessage();
-    }
+    public abstract String toString();
 }
