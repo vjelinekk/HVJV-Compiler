@@ -3,7 +3,6 @@ package compiler.semgen.symboltable;
 import compiler.semgen.CodeBuilder;
 import compiler.semgen.Instruction;
 import compiler.semgen.enums.EInstruction;
-import compiler.semgen.enums.ESymbolTableType;
 import compiler.semgen.exception.ExceptionContext;
 import compiler.semgen.exception.SemanticAnalysisException;
 
@@ -15,22 +14,22 @@ public class SymbolTable {
         public final Map<String, SymbolTableItem> items;
         public final boolean isFunctionScope;
         private int freeAddress;
-        private int deallocated;
+        private int memorySize;
         private final Map<String, Integer> gotoLabels;
 
         public Scope() {
             this.items = new HashMap<>();
             this.isFunctionScope = true;
             this.freeAddress = 3;
-            this.deallocated = 0;
+            this.memorySize = 0;
             this.gotoLabels = new HashMap<>();
         }
 
-        public Scope(int freeAddress, int deallocated) {
+        public Scope(int freeAddress, int memorySize) {
             this.items = new HashMap<>();
             this.isFunctionScope = false;
             this.freeAddress = freeAddress;
-            this.deallocated = deallocated;
+            this.memorySize = memorySize;
             this.gotoLabels = new HashMap<>();
         }
 
@@ -54,27 +53,18 @@ public class SymbolTable {
                         ExceptionContext.getFunctionName()
                 );
             }
-
             return gotoLabels.get(label);
         }
 
-        public void deallocate(Scope scope) {
-            int variablesCount = scope.items.size();
-
-            deallocated += variablesCount;
+        public void deallocate() {
+            CodeBuilder.addInstruction(new Instruction(EInstruction.INT, 0, -memorySize));
         }
 
-        public void allocateMemory(int variablesCount) {
-            if(variablesCount > deallocated) {
-                variablesCount -= deallocated;
-                deallocated += variablesCount;
-                CodeBuilder.addInstruction(new Instruction(EInstruction.INT,0, variablesCount));
-            }
+        public void allocate() {
+            CodeBuilder.addInstruction(new Instruction(EInstruction.INT, 0, memorySize));
         }
 
         public int assignAddress() {
-            if(deallocated > 0)
-                deallocated--;
             return freeAddress++;
         }
     }
@@ -94,9 +84,8 @@ public class SymbolTable {
         }
 
         Scope lastScope = scopeStack.peek();
-        Scope newScope = new Scope(lastScope.freeAddress, lastScope.deallocated);
-        lastScope.deallocated = 0;
-        newScope.allocateMemory(variablesCount);
+        Scope newScope = new Scope(lastScope.freeAddress, variablesCount);
+        newScope.allocate();
         scopeStack.push(newScope);
     }
 
@@ -104,8 +93,7 @@ public class SymbolTable {
         if (scopeStack.size() == 1) {
             throw new RuntimeException("Cannot exit global scope");
         }
-        Scope scope = scopeStack.pop();
-        scopeStack.peek().deallocate(scope);
+        scopeStack.pop().deallocate();
     }
 
     private Scope getFunctionScope() {
@@ -167,8 +155,8 @@ public class SymbolTable {
         throw new SemanticAnalysisException("Declaration out of function scope", ExceptionContext.getLineNumber(), ExceptionContext.getFunctionName());
     }
 
-    public int getCurrentScopeFreeMemory() {
-        return scopeStack.peek().deallocated;
+    public int getCurrentScopeMemory() {
+        return scopeStack.peek().memorySize;
     }
 
     public void addGotoLabel(String label, int address) throws SemanticAnalysisException {

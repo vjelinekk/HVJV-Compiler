@@ -1,8 +1,17 @@
 void main() {
-    int a = 10;
-    for (int i = 0; i < 3; i = i + 1) {
-        int b = 100;
+    int a = 100;
+    int b = 200;
+
+    for(int i = 0;i < 5; i = i + 1) {
+       int c = 300;
+       int d = 400;
+        for(int j = 0;j < 5; j = j + 1) {
+            int e = 500;
+            int f = c + d;
+        }
+        int e = 550;
+        int f = c + d;
     }
-    int b = 20;
-    int c = b + 1;
+
+    int c = a + b;
 }

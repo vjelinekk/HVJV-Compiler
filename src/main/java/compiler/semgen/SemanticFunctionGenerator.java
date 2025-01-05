@@ -23,7 +23,7 @@ public class SemanticFunctionGenerator extends BaseSemanticCodeGenerator<Functio
         getSymbolTable().getItem(getNode().getIdentifier()).setAddress(CodeBuilder.getLineNumber());
         ExceptionContext.setFunctionName(getNode().getIdentifier());
 
-        getSymbolTable().enterScope(true, 0); // <<------ new scope here
+        getSymbolTable().enterScope(true, getNode().getFunctionBlock().getStatements().getVariablesCount()); // <<------ new scope here
 
         // Add parameters to symbol table
         int parametersCount = getNode().getParameters() != null ? getNode().getParameters().getParameters().size() : 0;
