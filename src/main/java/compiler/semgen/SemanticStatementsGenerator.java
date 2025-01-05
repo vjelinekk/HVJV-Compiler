@@ -52,7 +52,6 @@ public class SemanticStatementsGenerator extends BaseSemanticCodeGenerator<State
                     SemanticStatementsGenerator generator = new SemanticStatementsGenerator(st.getStatements(), getSymbolTable(), returnType, returnAddress);
                     generator.run();
                     getSymbolTable().exitScope();
-
                     CodeBuilder.getPlaceholderInstruction(placeholder).setArg2(CodeBuilder.getLineNumber() + 1);
                     break;
                 case IF_ELSE:
@@ -60,20 +59,21 @@ public class SemanticStatementsGenerator extends BaseSemanticCodeGenerator<State
                     ExceptionContext.setLineNumber(statement.getLineNumber());
 
                     SemanticExpressionEvaluator.evaluate(ifElseStatement.getCondition(), getSymbolTable());
-                    int ifPlaceholder = CodeBuilder.addPlaceholderInstruction(new Instruction(EInstruction.JMC, 0, 0));
+                    int skipIfPlaceholder = CodeBuilder.addPlaceholderInstruction(new Instruction(EInstruction.JMC, 0, 0));
 
                     getSymbolTable().enterScope(false, ifElseStatement.getIfStatements().getVariablesCount());
                     generator = new SemanticStatementsGenerator(ifElseStatement.getIfStatements(), getSymbolTable(), returnType, returnAddress);
                     generator.run();
                     getSymbolTable().exitScope();
-                    int elsePlaceholder = CodeBuilder.addPlaceholderInstruction(new Instruction(EInstruction.JMP, 0, 0));
-                    CodeBuilder.getPlaceholderInstruction(ifPlaceholder).setArg2(CodeBuilder.getLineNumber() + 1);
+                    int skipElsePlaceholder = CodeBuilder.addPlaceholderInstruction(new Instruction(EInstruction.JMP, 0, 0));
+                    CodeBuilder.getPlaceholderInstruction(skipIfPlaceholder).setArg2(CodeBuilder.getLineNumber() + 1);
+
 
                     getSymbolTable().enterScope(false, ifElseStatement.getElseStatements().getVariablesCount());
                     generator = new SemanticStatementsGenerator(ifElseStatement.getElseStatements(), getSymbolTable(), returnType, returnAddress);
                     generator.run();
                     getSymbolTable().exitScope();
-                    CodeBuilder.getPlaceholderInstruction(elsePlaceholder).setArg2(CodeBuilder.getLineNumber() + 1);
+                    CodeBuilder.getPlaceholderInstruction(skipElsePlaceholder).setArg2(CodeBuilder.getLineNumber() + 1);
 
                     break;
                 case WHILE:
@@ -86,9 +86,9 @@ public class SemanticStatementsGenerator extends BaseSemanticCodeGenerator<State
                     int whilePlaceholderEnd = CodeBuilder.addPlaceholderInstruction(new Instruction(EInstruction.JMC, 0, 0));
                     generator = new SemanticStatementsGenerator(whileStatement.getStatements(), getSymbolTable(), returnType, returnAddress);
                     generator.run();
-                    getSymbolTable().exitScope();
                     CodeBuilder.addInstruction(new Instruction(EInstruction.JMP, 0, whileStatementStart));
                     CodeBuilder.getPlaceholderInstruction(whilePlaceholderEnd).setArg2(CodeBuilder.getLineNumber() + 1);
+                    getSymbolTable().exitScope();
                     break;
                 case FOR:
                     ForStatement forStatement = ((StatementFor) statement).getForStatement();
@@ -102,9 +102,9 @@ public class SemanticStatementsGenerator extends BaseSemanticCodeGenerator<State
                     generator = new SemanticStatementsGenerator(forStatement.getStatements(), getSymbolTable(), returnType, returnAddress);
                     generator.run();
                     createAssignment(forStatement.getAssignment());
-                    getSymbolTable().exitScope();
                     CodeBuilder.addInstruction(new Instruction(EInstruction.JMP, 0, forStatementStart));
                     CodeBuilder.getPlaceholderInstruction(forPlaceholderEnd).setArg2(CodeBuilder.getLineNumber() + 1);
+                    getSymbolTable().exitScope();
                     break;
                 case ASSIGNMENT:
                     Assignment as = ((StatementAssignment) statement).getAssignment();
@@ -215,6 +215,7 @@ public class SemanticStatementsGenerator extends BaseSemanticCodeGenerator<State
     }
 
     private void createDeclaration(Declaration declaration) throws SemanticAnalysisException {
+        boolean hasFreeSpace = getSymbolTable().getCurrentScopeFreeMemory() > 0;
         SymbolTableItem item = new SymbolTableItem(
                 declaration.getIdentifier(), 0,
                 getSymbolTable().assignAddress(),
@@ -231,8 +232,8 @@ public class SemanticStatementsGenerator extends BaseSemanticCodeGenerator<State
             );
         }
 
-        System.out.println("adding variable: " + item.getId() + " at address: " + item.getAddress() + " free space:" + getSymbolTable().getCurrentScopeFreeMemory());
-        if(getSymbolTable().getCurrentScopeFreeMemory() >= 0 && !getSymbolTable().isCurrentFunctionScope())
+        System.out.println("adding variable: " + item.getId() + " at address: " + item.getAddress() + " space left:" + getSymbolTable().getCurrentScopeFreeMemory());
+        if(hasFreeSpace)
             CodeBuilder.addInstruction(new Instruction(EInstruction.STO, 0, item.getAddress()));
     }
 

@@ -15,22 +15,25 @@ public class SymbolTable {
         public final Map<String, SymbolTableItem> items;
         public final boolean isFunctionScope;
         private int freeAddress;
-        private int deallocated;
+        private int allocated;
+        private int allocatedInThisScope;
         private final Map<String, Integer> gotoLabels;
 
         public Scope() {
             this.items = new HashMap<>();
             this.isFunctionScope = true;
             this.freeAddress = 3;
-            this.deallocated = 0;
+            this.allocated = 0;
+            this.allocatedInThisScope = 0;
             this.gotoLabels = new HashMap<>();
         }
 
-        public Scope(int freeAddress, int deallocated) {
+        public Scope(int freeAddress, int allocated) {
             this.items = new HashMap<>();
             this.isFunctionScope = false;
             this.freeAddress = freeAddress;
-            this.deallocated = deallocated;
+            this.allocated = allocated;
+            this.allocatedInThisScope = 0;
             this.gotoLabels = new HashMap<>();
         }
 
@@ -58,23 +61,23 @@ public class SymbolTable {
             return gotoLabels.get(label);
         }
 
-        public void deallocate(Scope scope) {
-            int variablesCount = scope.items.size();
-
-            deallocated += variablesCount;
+        public void deallocate() {
+            CodeBuilder.addInstruction(new Instruction(EInstruction.INT,0, -allocatedInThisScope));
         }
 
         public void allocateMemory(int variablesCount) {
-            if(variablesCount > deallocated) {
-                variablesCount -= deallocated;
-                deallocated += variablesCount;
-                CodeBuilder.addInstruction(new Instruction(EInstruction.INT,0, variablesCount));
+            System.out.println("starting scope with " + allocated);
+            if(variablesCount > allocated) {
+                allocatedInThisScope = variablesCount - allocated;
+                allocated += allocatedInThisScope;
+                System.out.println("adding " + allocatedInThisScope);
+                CodeBuilder.addInstruction(new Instruction(EInstruction.INT,0, allocatedInThisScope));
             }
         }
 
         public int assignAddress() {
-            if(deallocated > 0)
-                deallocated--;
+            if(allocated > 0)
+                allocated--;
             return freeAddress++;
         }
     }
@@ -94,8 +97,7 @@ public class SymbolTable {
         }
 
         Scope lastScope = scopeStack.peek();
-        Scope newScope = new Scope(lastScope.freeAddress, lastScope.deallocated);
-        lastScope.deallocated = 0;
+        Scope newScope = new Scope(lastScope.freeAddress, lastScope.allocated);
         newScope.allocateMemory(variablesCount);
         scopeStack.push(newScope);
     }
@@ -104,8 +106,7 @@ public class SymbolTable {
         if (scopeStack.size() == 1) {
             throw new RuntimeException("Cannot exit global scope");
         }
-        Scope scope = scopeStack.pop();
-        scopeStack.peek().deallocate(scope);
+        scopeStack.pop().deallocate();
     }
 
     private Scope getFunctionScope() {
@@ -168,7 +169,7 @@ public class SymbolTable {
     }
 
     public int getCurrentScopeFreeMemory() {
-        return scopeStack.peek().deallocated;
+        return scopeStack.peek().allocated;
     }
 
     public void addGotoLabel(String label, int address) throws SemanticAnalysisException {
