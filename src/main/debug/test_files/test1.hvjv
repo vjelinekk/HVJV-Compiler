@@ -1,9 +1,8 @@
 void main() {
-goto2Label:
-    int res = 5;
-gotoLabel:
-    for (int i = 0; i < res; i = i + 1) {
-        res = res - 1;
+    int a = 10;
+    for (int i = 0; i < 3; i = i + 1) {
+        int b = 100;
     }
-    goto goto2Label;
+    int b = 20;
+    int c = b + 1;
 }

@@ -4,7 +4,7 @@ import compiler.ast.model.Program;
 import compiler.ast.visitor.ProgramVisitor;
 import compiler.semgen.CodeBuilder;
 import compiler.semgen.SemanticCodeGenerator;
-import compiler.semgen.SymbolTable;
+import compiler.semgen.exception.SemanticAnalysisException;
 import grammar.HVJVGrammarLexer;
 import grammar.HVJVGrammarParser;
 import org.antlr.v4.runtime.CharStream;
@@ -52,9 +52,15 @@ public class Compiler {
         ParseTree tree = parser.program();
 
         Program program = new ProgramVisitor().visit(tree);
-        System.out.println(program);
+//        System.out.println(program);
         SemanticCodeGenerator semanticCodeGenerator = new SemanticCodeGenerator(program);
-        semanticCodeGenerator.run();
+        try {
+            semanticCodeGenerator.run();
+        } catch (SemanticAnalysisException e) {
+            System.err.println(e.toString());
+            e.printStackTrace();
+            System.exit(1);
+        }
         CodeBuilder.generateCode(output);
     }
 }

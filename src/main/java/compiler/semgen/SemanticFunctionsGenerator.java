@@ -2,8 +2,10 @@ package compiler.semgen;
 
 import compiler.ast.model.functions.Function;
 import compiler.ast.model.functions.Functions;
-import compiler.semgen.enums.EInstruction;
 import compiler.semgen.enums.ESymbolTableType;
+import compiler.semgen.exception.SemanticAnalysisException;
+import compiler.semgen.symboltable.SymbolTable;
+import compiler.semgen.symboltable.SymbolTableItem;
 
 import java.util.List;
 
@@ -13,7 +15,7 @@ public class SemanticFunctionsGenerator extends BaseSemanticCodeGenerator<Functi
         super(functions, symbolTable);
     }
 
-    public void run() {
+    public void run() throws SemanticAnalysisException {
         List<Function> functionList = getNode().getFunctions();
         for (Function function : functionList) {
             SymbolTableItem item = new SymbolTableItem(

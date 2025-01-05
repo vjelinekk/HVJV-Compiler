@@ -6,6 +6,10 @@ import compiler.ast.model.functions.Function;
 import compiler.ast.model.statements.Statements;
 import compiler.semgen.enums.EInstruction;
 import compiler.semgen.enums.ESymbolTableType;
+import compiler.semgen.exception.ExceptionContext;
+import compiler.semgen.exception.SemanticAnalysisException;
+import compiler.semgen.symboltable.SymbolTable;
+import compiler.semgen.symboltable.SymbolTableItem;
 
 public class SemanticFunctionGenerator extends BaseSemanticCodeGenerator<Function> {
     public SemanticFunctionGenerator(Function function, SymbolTable symbolTable) {
@@ -13,12 +17,13 @@ public class SemanticFunctionGenerator extends BaseSemanticCodeGenerator<Functio
     }
 
     @Override
-    public void run() {
+    public void run() throws SemanticAnalysisException {
         // Add function to symbol table
         CodeBuilder.addInstruction(new Instruction(EInstruction.INT, 0, 3));
         getSymbolTable().getItem(getNode().getIdentifier()).setAddress(CodeBuilder.getLineNumber());
+        ExceptionContext.setFunctionName(getNode().getIdentifier());
 
-        getSymbolTable().enterScope(true); // <<------ new scope here
+        getSymbolTable().enterScope(true, 0); // <<------ new scope here
 
         // Add parameters to symbol table
         int parametersCount = getNode().getParameters() != null ? getNode().getParameters().getParameters().size() : 0;

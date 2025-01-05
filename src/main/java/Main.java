@@ -1,14 +1,8 @@
 import compiler.Compiler;
-import compiler.ast.enums.EDataType;
 import compiler.semgen.CodeBuilder;
-import compiler.semgen.SymbolTable;
-import compiler.semgen.SymbolTableItem;
-import compiler.semgen.enums.EInstruction;
-import compiler.semgen.enums.ESymbolTableType;
 import org.antlr.v4.runtime.CharStream;
 import validation.CompilerInputValidation;
 
-import java.io.Console;
 import java.io.IOException;
 
 /**

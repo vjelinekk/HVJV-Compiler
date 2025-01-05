@@ -1,5 +1,7 @@
 package compiler.ast.model.statements;
 
+import compiler.ast.enums.EStatementType;
+
 import java.util.List;
 
 public class Statements {
@@ -11,6 +13,17 @@ public class Statements {
 
     public List<Statement> getStatements() {
         return statements;
+    }
+
+    public int getVariablesCount() {
+        int count = 0;
+        for (Statement statement : statements) {
+            if (statement.getStatementType() == EStatementType.DECLARATION) {
+                count++;
+            }
+        }
+
+        return count;
     }
 
     public String toString() {

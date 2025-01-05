@@ -1,5 +1,8 @@
 package compiler.semgen;
 
+import compiler.semgen.exception.SemanticAnalysisException;
+import compiler.semgen.symboltable.SymbolTable;
+
 abstract public class BaseSemanticCodeGenerator<T> {
     private final SymbolTable symbolTable;
     private final T node;
@@ -9,7 +12,7 @@ abstract public class BaseSemanticCodeGenerator<T> {
         this.node = node;
     }
 
-    public abstract void run();
+    public abstract void run() throws SemanticAnalysisException;
 
     public SymbolTable getSymbolTable() {
         return symbolTable;

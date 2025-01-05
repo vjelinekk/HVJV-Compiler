@@ -1,4 +1,4 @@
-package compiler.semgen;
+package compiler.semgen.symboltable;
 
 import compiler.ast.enums.EDataType;
 import compiler.ast.enums.EReturnType;
@@ -76,5 +76,17 @@ public class SymbolTableItem {
         }
 
         this.parametersTypes = parametersTypes;
+    }
+
+    @Override
+    public String toString() {
+        return "SymbolTableItem{" +
+                "id='" + id + '\'' +
+                ", level=" + level +
+                ", address=" + address +
+                ", type=" + type +
+                ", returnType=" + returnType +
+                ", parametersTypes=" + parametersTypes +
+                '}';
     }
 }

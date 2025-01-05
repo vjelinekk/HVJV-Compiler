@@ -9,12 +9,15 @@ import compiler.ast.model.functions.FunctionCall;
 import compiler.semgen.enums.EInstruction;
 import compiler.semgen.enums.EOperator;
 import compiler.semgen.enums.ESymbolTableType;
+import compiler.semgen.exception.ExceptionContext;
+import compiler.semgen.exception.SemanticAnalysisException;
+import compiler.semgen.symboltable.SymbolTable;
+import compiler.semgen.symboltable.SymbolTableItem;
 
 import java.util.List;
 
-public class SemanticExpressionGenerator {
-
-    public static EDataType evaluate(Expression expression, SymbolTable symbolTable) {
+public class SemanticExpressionEvaluator {
+    public static EDataType evaluate(Expression expression, SymbolTable symbolTable) throws SemanticAnalysisException {
         EDataType left;
         EDataType right;
         int value;
@@ -29,7 +32,7 @@ public class SemanticExpressionGenerator {
                     arithmeticExpressionEvaluate(operatorArithmetic);
                     return left;
                 }
-                else throw new RuntimeException("int value expected, got bool");
+                else throw new SemanticAnalysisException("INT value expected, got BOOL", ExceptionContext.getLineNumber(), ExceptionContext.getFunctionName());
             case PLUS_MINUS:
                  left = evaluate(((ExpPlusMinus) expression).getLeft(), symbolTable);
                  right = evaluate(((ExpPlusMinus) expression).getRight(), symbolTable);
@@ -39,7 +42,7 @@ public class SemanticExpressionGenerator {
                     arithmeticExpressionEvaluate(operatorArithmetic);
                     return left;
                 }
-                else throw new RuntimeException("int value expected, got bool");
+                else throw new SemanticAnalysisException("INT value expected, got BOOL", ExceptionContext.getLineNumber(), ExceptionContext.getFunctionName());
             case AND_OR:
                     left = evaluate(((ExpAndOr) expression).getLeft(), symbolTable);
                     right = evaluate(((ExpAndOr) expression).getRight(), symbolTable);
@@ -49,7 +52,7 @@ public class SemanticExpressionGenerator {
                     logicalExpressionEvaluate(operatorLogical);
                     return left;
                 }
-                else throw new RuntimeException("bool value expected, got int");
+                else throw new SemanticAnalysisException("BOOL value expected, got INT", ExceptionContext.getLineNumber(), ExceptionContext.getFunctionName());
             case LOGICAL:
                 left = evaluate(((ExpLogical) expression).getLeft(), symbolTable);
                 right = evaluate(((ExpLogical) expression).getRight(), symbolTable);
@@ -57,8 +60,11 @@ public class SemanticExpressionGenerator {
                     logicalExpressionEvaluate(operatorLogical);
 
                 if (left == right) return EDataType.BOOL;
-                else throw new RuntimeException("logical operation mismatch: comparing: "
-                        + left + " " + operatorLogical + " " + right);
+                else throw new SemanticAnalysisException("Logical operation mismatch: comparing: "
+                        + left + " " + operatorLogical + " " + right,
+                        ExceptionContext.getLineNumber(),
+                        ExceptionContext.getFunctionName()
+                );
             case DECIMAL_VALUE:
                 value = ((ExpDecimalValue)expression).getDecimalValue().getValue();
                 CodeBuilder.addInstruction( new Instruction(EInstruction.LIT,0, value));
@@ -72,7 +78,7 @@ public class SemanticExpressionGenerator {
                 CodeBuilder.addInstruction(new Instruction(EInstruction.LOD, i.getLevel(), i.getAddress()));
 
                 if (i.getType() == ESymbolTableType.FUNCTION)
-                    throw new RuntimeException("value expected, got function");
+                    throw new SemanticAnalysisException("Value expected, got function", ExceptionContext.getLineNumber(), ExceptionContext.getFunctionName());
 
                 return i.getType() == ESymbolTableType.BOOL ? EDataType.BOOL : EDataType.INT;
             case FUNCTION_CALL:
@@ -80,8 +86,10 @@ public class SemanticExpressionGenerator {
                 SymbolTableItem fnc = symbolTable.getFromGlobalScope(call.getIdentifier());
                 List<Expression> arguments = call.getArguments().getArguments();
                 if (arguments.size() != fnc.getParametersTypes().size())
-                    throw new RuntimeException(
-                            "Arguments count mismatch, expected " + arguments.size() + " got " + fnc.getParametersTypes().size()
+                    throw new SemanticAnalysisException(
+                            "Arguments count mismatch, expected " + arguments.size() + " got " + fnc.getParametersTypes().size(),
+                            ExceptionContext.getLineNumber(),
+                            ExceptionContext.getFunctionName()
                     );
 
                 CodeBuilder.addInstruction(new Instruction(EInstruction.INT, 0, 1));
@@ -89,13 +97,17 @@ public class SemanticExpressionGenerator {
                 for (int j = 0; j < arguments.size(); j++) {
                     EDataType paramType = evaluate(arguments.get(j), symbolTable);
                     if(paramType != fnc.getParametersTypes().get(j))
-                        throw new RuntimeException("Arguments mismatch expected " + fnc.getParametersTypes().get(j) + " got " + paramType);
+                        throw new SemanticAnalysisException(
+                                "Arguments mismatch expected " + fnc.getParametersTypes().get(j) + " got " + paramType,
+                                ExceptionContext.getLineNumber(),
+                                ExceptionContext.getFunctionName()
+                        );
                 }
                 CodeBuilder.addInstruction(new Instruction(EInstruction.CAL, 0, fnc.getAddress()));
                 CodeBuilder.addInstruction(new Instruction(EInstruction.INT, 0, -arguments.size()));
 
                 if(fnc.getReturnType() == EReturnType.VOID)
-                    throw new RuntimeException("Trying to assign value of type VOID");
+                    throw new SemanticAnalysisException("Trying to assign value of type VOID", ExceptionContext.getLineNumber(), ExceptionContext.getFunctionName());
                 return fnc.getReturnType() == EReturnType.INT ? EDataType.INT : EDataType.BOOL;
 
             case PARENTHESIS:
@@ -103,19 +115,19 @@ public class SemanticExpressionGenerator {
             case PLUS:
                 if (evaluate(((ExpPlus)expression).getExpression(), symbolTable) == EDataType.INT)
                     return EDataType.INT;
-                else throw new RuntimeException("int value expected, got bool");
+                else throw new SemanticAnalysisException("INT value expected, got BOOL", ExceptionContext.getLineNumber(), ExceptionContext.getFunctionName());
             case MINUS:
                 if (evaluate(((ExpPlus)expression).getExpression(), symbolTable) == EDataType.INT) {
                     CodeBuilder.addInstruction(new Instruction(EInstruction.OPR, 0, 1));
                     return EDataType.INT;
                 }
-                else throw new RuntimeException("int value expected, got bool");
+                else throw new SemanticAnalysisException("INT value expected, got BOOL", ExceptionContext.getLineNumber(), ExceptionContext.getFunctionName());
             case NOT:
                 if (evaluate(((ExpNot)expression).getExpression(), symbolTable) == EDataType.BOOL) {
                     CodeBuilder.addInstruction(new Instruction(EInstruction.LIT, 0, 0));
                     CodeBuilder.addInstruction(new Instruction(EInstruction.OPR, 0, 8));
                 }
-                else throw new RuntimeException("bool value expected, got int");
+                else throw new SemanticAnalysisException("BOOL value expected, got INT", ExceptionContext.getLineNumber(), ExceptionContext.getFunctionName());
             default:
                 break;
         }
