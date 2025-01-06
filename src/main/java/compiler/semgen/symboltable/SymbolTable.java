@@ -213,7 +213,7 @@ public class SymbolTable {
     }
 
     public boolean containsGoToLabel(String label) {
-        return scopeStack.getLast().containsLabel(label);
+        return scopeStack.get(scopeStack.size() - 1).containsLabel(label);
     }
 
     public int getGotoLabelAddress(String label) throws SemanticAnalysisException {
