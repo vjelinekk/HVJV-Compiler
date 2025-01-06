@@ -1,4 +1,5 @@
 import compiler.Compiler;
+import compiler.semgen.CodeBuilder;
 import org.antlr.v4.runtime.CharStream;
 import validation.CompilerInputValidation;
 
@@ -39,6 +40,7 @@ public class Main {
 
         Compiler compiler = new Compiler(input, outputFile);
         compiler.compile();
+        CodeBuilder.generateCode(outputFile);
     }
 
     /**

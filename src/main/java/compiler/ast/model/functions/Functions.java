@@ -1,5 +1,7 @@
 package compiler.ast.model.functions;
 
+import compiler.ast.enums.EReturnType;
+
 import java.util.List;
 
 public class Functions {

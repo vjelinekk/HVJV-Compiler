@@ -7,7 +7,7 @@ public class StatementDeclaration extends Statement {
     private final Declaration declaration;
 
     public StatementDeclaration(Declaration declaration, int lineNumber) {
-        super(EStatementType.WHILE, lineNumber);
+        super(EStatementType.DECLARATION, lineNumber);
         this.declaration = declaration;
     }
 

@@ -35,6 +35,6 @@ public class ForStatement {
     }
 
     public String toString() {
-        return "for (" + declaration + "; " + condition + "; " + assignment + ")";
+        return "for (" + declaration + "; " + condition + "; " + assignment + ") \n {\n" + statements + "\n}";
     }
 }

@@ -1,5 +1,7 @@
 package compiler.ast.model.functions;
 
+import java.util.ArrayList;
+
 public class FunctionCall {
     private final String identifier;
     private final Arguments arguments;
@@ -14,6 +16,9 @@ public class FunctionCall {
     }
 
     public Arguments getArguments() {
+        if (arguments == null) {
+            return new Arguments(new ArrayList<>());
+        }
         return arguments;
     }
 

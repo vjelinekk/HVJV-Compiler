@@ -16,7 +16,7 @@ public class DecimalValue {
     }
 
     public int getValue() {
-        return value;
+        return signSymbol == ESignSymbol.MINUS ? -value : value;
     }
 
     public String toString() {
