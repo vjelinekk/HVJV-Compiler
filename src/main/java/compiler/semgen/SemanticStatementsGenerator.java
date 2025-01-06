@@ -2,6 +2,7 @@ package compiler.semgen;
 
 import compiler.ast.enums.EDataType;
 import compiler.ast.enums.EReturnType;
+import compiler.ast.enums.EStatementType;
 import compiler.ast.model.expression.Expression;
 import compiler.ast.model.flow.ForStatement;
 import compiler.ast.model.flow.IfElseStatement;
@@ -19,7 +20,9 @@ import compiler.semgen.exception.SemanticAnalysisException;
 import compiler.semgen.symboltable.SymbolTable;
 import compiler.semgen.symboltable.SymbolTableItem;
 
+import java.util.Iterator;
 import java.util.List;
+import java.util.ListIterator;
 
 public class SemanticStatementsGenerator extends BaseSemanticCodeGenerator<Statements> {
     private final EReturnType returnType;
@@ -36,7 +39,11 @@ public class SemanticStatementsGenerator extends BaseSemanticCodeGenerator<State
 
     @Override
     public void run() throws SemanticAnalysisException {
-        for (Statement statement : getNode().getStatements()) {
+        ListIterator<Statement> iterator = getNode().getStatements().listIterator();
+
+        while (iterator.hasNext()) {
+            Statement statement = iterator.next();
+
             switch (statement.getStatementType()) {
                 case DECLARATION:
                     ExceptionContext.setLineNumber(statement.getLineNumber());
@@ -150,7 +157,7 @@ public class SemanticStatementsGenerator extends BaseSemanticCodeGenerator<State
                         throw new GeneralSemanticAnalysisException("Trying to return void from NON-VOID function", statement.getLineNumber(), ExceptionContext.getFunctionName());
 
                     CodeBuilder.addInstruction(new Instruction(EInstruction.RET, 0, 0));
-                    break;
+                    return;
                 case RETURN_EXPRESSION:
                     if (returnType == EReturnType.VOID)
                         throw new GeneralSemanticAnalysisException("Trying to return value from VOID function", statement.getLineNumber(), ExceptionContext.getFunctionName());
@@ -167,7 +174,7 @@ public class SemanticStatementsGenerator extends BaseSemanticCodeGenerator<State
 
                     CodeBuilder.addInstruction(new Instruction(EInstruction.STO, 0, returnAddress));
                     CodeBuilder.addInstruction(new Instruction(EInstruction.RET, 0, 0));
-                    break;
+                    return;
                 case LABEL:
                     StatementLabel label = ((StatementLabel) statement);
                     ExceptionContext.setLineNumber(statement.getLineNumber());
@@ -176,8 +183,7 @@ public class SemanticStatementsGenerator extends BaseSemanticCodeGenerator<State
                 case GOTO:
                     StatementGoto gotoStatement = ((StatementGoto) statement);
                     ExceptionContext.setLineNumber(statement.getLineNumber());
-                    int gotoAddress = getSymbolTable().getGotoLabelAddress(gotoStatement.getLabel());
-                    CodeBuilder.addInstruction(new Instruction(EInstruction.JMP, 0, gotoAddress));
+                    createGoToJump(gotoStatement.getLabel(), iterator);
                     break;
                 case TERNARY_ASSIGNMENT:
                     TernaryOperatorAssignment ternary = ((StatementTernaryOperatorAssignment) statement).getTernaryOperatorAssignment();
@@ -217,6 +223,48 @@ public class SemanticStatementsGenerator extends BaseSemanticCodeGenerator<State
             }
         }
     }
+
+    private void createGoToJump(String label, ListIterator<Statement> iterator) throws SemanticAnalysisException {
+        int jumpAddress = getSymbolTable().getGotoLabelAddress(label);
+
+        if(jumpAddress > 0) {
+            while(!getSymbolTable().containsGoToLabel(label)) {
+                getSymbolTable().exitScope();
+            }
+            // TODO: decrease stack of current scope before jump to label, problem is: int a; int b; Label l: ; --> a = 10; int c <--- goto
+            CodeBuilder.addInstruction(new Instruction(EInstruction.JMP, 0, jumpAddress));
+        }
+        else {
+            int JumpInstructionId = CodeBuilder.addPlaceholderInstruction(new Instruction(EInstruction.JMP, 0, 0));
+            getSymbolTable().addRequiredGoToLabel(label, JumpInstructionId);
+
+            while(iterator.hasNext()) {
+                if(iterator.next().getStatementType() == EStatementType.LABEL) {
+                    iterator.previous();
+                    break;
+                }
+            }
+
+            if(!iterator.hasNext()) {
+                if(getSymbolTable().isCurrentFunctionScope())
+                    throw new RuntimeException("undefined goto label");
+                getSymbolTable().exitScope();
+            }
+        }
+
+    }
+    /*
+    | 10 |
+    if() {
+    label:
+    int x = 10;
+    if() {
+        int y = 10;
+        goto label;
+    }
+
+    }
+     */
 
     private void createDeclaration(Declaration declaration) throws SemanticAnalysisException {
         boolean hasFreeSpace = getSymbolTable().getCurrentScopeFreeMemory() > 0;
