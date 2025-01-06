@@ -6,7 +6,6 @@ import compiler.semgen.enums.EInstruction;
 import compiler.semgen.exception.ExceptionContext;
 import compiler.semgen.exception.GeneralSemanticAnalysisException;
 import compiler.semgen.exception.SemanticAnalysisException;
-import jdk.javadoc.internal.doclets.formats.html.Table;
 
 import java.util.*;
 
@@ -102,9 +101,14 @@ public class SymbolTable {
             }
         }
 
-        public void deallocate() {
+        public void deallocate(Scope parentScope) {
             if (allocatedInThisScope > 0)
                 CodeBuilder.addInstruction(new Instruction(EInstruction.INT,0, -allocatedInThisScope));
+
+            for(Map.Entry<String, List<Integer>> entry : requiredLabels.entrySet())
+                for(int instructionId : entry.getValue()) {
+                    parentScope.addRequiredLabel(entry.getKey(), instructionId);
+                }
         }
 
         public void allocateMemory(int variablesCount) {
@@ -145,7 +149,8 @@ public class SymbolTable {
         if (scopeStack.size() == 1) {
             throw new RuntimeException("Cannot exit global scope");
         }
-        scopeStack.pop().deallocate();
+        Scope exiting = scopeStack.pop();
+        exiting.deallocate(scopeStack.peek());
     }
 
     public boolean isCurrentFunctionScope() {
@@ -190,7 +195,7 @@ public class SymbolTable {
 
     public int assignAddress() throws SemanticAnalysisException {
             if(!scopeStack.isEmpty())
-                return scopeStack.getLast().assignAddress();
+                return scopeStack.get(scopeStack.size() -1).assignAddress();
             else
                 throw new GeneralSemanticAnalysisException("Declaration out of function scope", ExceptionContext.getLineNumber(), ExceptionContext.getFunctionName());
     }
