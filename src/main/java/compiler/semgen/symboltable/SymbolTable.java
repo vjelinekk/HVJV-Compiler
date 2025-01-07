@@ -13,13 +13,24 @@ import java.util.*;
 public class SymbolTable {
 
     private static class Scope {
+
+        private static class Pair {
+            public final int address;
+            public final int currentMemory;
+
+            public Pair(int address, int currentMemory) {
+                this.address = address;
+                this.currentMemory = currentMemory;
+            }
+        }
+
         public final Map<String, SymbolTableItem> items;
         public final boolean isFunctionScope;
         private int freeAddress;
         private int allocated;
         private int allocatedInThisScope;
-        private final Map<String, Integer> gotoLabels;
-        private final Map<String, List<Integer>> requiredLabels;
+        private final Map<String, Pair> gotoLabels;
+        private final Map<String, List<Pair>> requiredLabels;
 
         public Scope() {
             this.items = new HashMap<>();
@@ -41,7 +52,7 @@ public class SymbolTable {
             this.requiredLabels = new HashMap<>();
         }
 
-        public void addGotoLabel(String label, int address) throws SemanticAnalysisException {
+        public void addGotoLabel(String label, int address, int memory) throws SemanticAnalysisException {
             if (gotoLabels.containsKey(label)) {
                 throw new GeneralSemanticAnalysisException(
                         "Label " + label + " already declared in this scope",
@@ -49,54 +60,38 @@ public class SymbolTable {
                         ExceptionContext.getFunctionName()
                 );
             }
-            gotoLabels.put(label, address);
+            Pair pair = new Pair(address, memory);
+            gotoLabels.put(label, pair);
 
             if(requiredLabels.containsKey(label)) {
-                for (int i = 1; i < requiredLabels.size(); i = i + 2) {
-                    CodeBuilder.getPlaceholderInstruction(requiredLabels.get(label).get(i) - 1).setArg2(requiredLabels.get(label).get(i - 1));
-                    CodeBuilder.getPlaceholderInstruction(requiredLabels.get(label).get(i)).setArg2(address);
+                for (Pair reqL : requiredLabels.get(label)) {
+                    CodeBuilder.getPlaceholderInstruction(reqL.address - 1).setArg2(memory - reqL.currentMemory);
+                    CodeBuilder.getPlaceholderInstruction(reqL.address).setArg2(address);
                 }
                 requiredLabels.remove(label);
             }
+
         }
 
-        public void addRequiredLabel(String label, int jumpInstructionId) {
-            if(requiredLabels.containsKey(label)) {
-                List<Integer> list = requiredLabels.get(label);
+        public void addRequiredLabel(String label, int gotoId, int memory) {
+            Pair pair = new Pair(gotoId, memory);
 
-                list.add(0);
-                list.add(jumpInstructionId);
-            }
-            else {
-                List<Integer> newList = new ArrayList<>();
-                newList.add(0);
-                newList.add(jumpInstructionId);
-                requiredLabels.put(label, newList);
-            }
+            if(!requiredLabels.containsKey(label))
+                requiredLabels.put(label, new ArrayList<>());
+
+            requiredLabels.get(label).add(pair);
         }
 
 
-        public int getGotoLabelAddress(String label) throws SemanticAnalysisException {
+        public int getGotoLabelAddress(String label) {
             if (!gotoLabels.containsKey(label))
                 return -1;
 
-            return gotoLabels.get(label);
+            return gotoLabels.get(label).address;
         }
 
         public boolean containsLabel(String label) {
             return gotoLabels.containsKey(label);
-        }
-
-        public void checkIfDeclarationIsAfterGotoLabel(int address) throws SemanticAnalysisException {
-            for (Map.Entry<String, Integer> entry : gotoLabels.entrySet()) {
-                if (entry.getValue() >= address) {
-                    throw new GeneralSemanticAnalysisException(
-                            "Declaration after goto statement",
-                            ExceptionContext.getLineNumber(),
-                            ExceptionContext.getFunctionName()
-                    );
-                }
-            }
         }
 
         public void deallocate(Scope parentScope) throws SemanticAnalysisException {
@@ -104,14 +99,18 @@ public class SymbolTable {
                 CodeBuilder.addInstruction(new Instruction(EInstruction.INT,0, -allocatedInThisScope));
 
             // share required labels with parent
-            for(Map.Entry<String, List<Integer>> entry : requiredLabels.entrySet())
-                for(int instructionId : entry.getValue()) {
-                    parentScope.addRequiredLabel(entry.getKey(), instructionId);
+            for(Map.Entry<String, List<Pair>> entry : requiredLabels.entrySet())
+                for(Pair reqL : entry.getValue()) {
+                    parentScope.addRequiredLabel(entry.getKey(), reqL.address, reqL.currentMemory);
+                    System.out.println("required " + entry.getKey());
                 }
 
             // share newly created labels with parent
-            for(Map.Entry<String, Integer> entry : gotoLabels.entrySet())
-                parentScope.addGotoLabel(entry.getKey(), entry.getValue());
+            for(Map.Entry<String, Pair> entry : gotoLabels.entrySet()) {
+                parentScope.addGotoLabel(entry.getKey(), entry.getValue().address, entry.getValue().currentMemory);
+                System.out.println("newly created " + entry.getKey());
+            }
+            System.out.println("----------------------");
         }
 
         public void allocateMemory(int variablesCount) {
@@ -151,11 +150,6 @@ public class SymbolTable {
     }
 
     public void exitScope() throws SemanticAnalysisException {
-        if(isCurrentFunctionScope())
-        System.out.print("(function)");
-        else
-        System.out.print("(basic)");
-        System.out.println("calling exit scope, stack size is " + scopeStack.size());
         if (scopeStack.size() == 1) {
             throw new RuntimeException("Cannot exit global scope");
         }
@@ -220,11 +214,11 @@ public class SymbolTable {
     }
 
     public void addGotoLabel(String label, int address) throws SemanticAnalysisException {
-        scopeStack.peek().addGotoLabel(label, address);
+        scopeStack.peek().addGotoLabel(label, address, getCurrentMemory());
     }
 
     public void addRequiredGoToLabel(String label, int jumpInstructionId) {
-        scopeStack.peek().addRequiredLabel(label, jumpInstructionId);
+        scopeStack.peek().addRequiredLabel(label, jumpInstructionId, getCurrentMemory());
     }
 
     public int getGotoLabelAddress(String label) throws SemanticAnalysisException {
@@ -241,21 +235,18 @@ public class SymbolTable {
         return address;
     }
     public void returnToLabel(String label) {
-        int count = 0;
-        for (int i = scopeStack.size() - 1;i >= 0; i--) {
+        int currentMemory = getCurrentMemory();
+        for(int i = scopeStack.size() - 1; i >= 0; i--) {
             Scope scope = scopeStack.get(i);
 
-            if(!scope.containsLabel(label)) {
-                count += scope.allocatedInThisScope;
-            } else break;
+            if (scope.gotoLabels.containsKey(label)) {
+                if(currentMemory != scope.gotoLabels.get(label).currentMemory) {
+                    CodeBuilder.addInstruction(new Instruction(EInstruction.INT, 0,
+                                         scope.gotoLabels.get(label).currentMemory - currentMemory));
+                }
+                break;
+            }
         }
-
-        if(count > 0)
-            CodeBuilder.addInstruction(new Instruction(EInstruction.INT, 0 , -count));
-    }
-
-    public void checkIfDeclarationIsAfterGotoLabel(int address) throws SemanticAnalysisException {
-//        scopeStack.peek().checkIfDeclarationIsAfterGotoLabel(address);
     }
 
     @Override
@@ -277,5 +268,16 @@ public class SymbolTable {
             if (scope.isFunctionScope) return scope;
         }
         return null;
+    }
+
+    private int getCurrentMemory() {
+        int usedMemory = 0;
+        for (int i = scopeStack.size() - 1; i >= 0; i--) {
+            Scope scope = scopeStack.get(i);
+            usedMemory += scope.allocatedInThisScope;
+
+            if(scope.isFunctionScope) break;
+        }
+        return usedMemory;
     }
 }

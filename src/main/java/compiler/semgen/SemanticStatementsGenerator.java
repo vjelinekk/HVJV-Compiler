@@ -246,7 +246,6 @@ public class SemanticStatementsGenerator extends BaseSemanticCodeGenerator<State
                 declaration.getDataType() == EDataType.INT ? ESymbolTableType.INT : ESymbolTableType.BOOL);
 
         getSymbolTable().addItem(item);
-        getSymbolTable().checkIfDeclarationIsAfterGotoLabel(CodeBuilder.getLineNumber() + 1);
         EDataType type = SemanticExpressionEvaluator.evaluate(declaration.getExpression(), getSymbolTable());
 
         if(declaration.getDataType() != type) {
