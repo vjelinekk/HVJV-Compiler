@@ -11,7 +11,7 @@ public class GeneralSemanticAnalysisException extends SemanticAnalysisException 
     }
 
     @Override
-    public String toString() {
-        return "Semantic error in function \"" + functionName + "\" at line " + lineNumber + ": " + getMessage();
+    public String getMessage() {
+        return "Semantic error in function \"" + functionName + "\" at line " + lineNumber + ": " + super.getMessage();
     }
 }

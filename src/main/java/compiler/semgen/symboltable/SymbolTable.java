@@ -155,7 +155,11 @@ public class SymbolTable {
 
         if (exiting.isFunctionScope) {
             if (!exiting.requiredLabels.entrySet().isEmpty())
-                throw new RuntimeException("Label " + exiting.requiredLabels.entrySet().stream().findFirst().get().getKey() + " not declared in this scope");
+                throw new GeneralSemanticAnalysisException(
+                        "Label " + exiting.requiredLabels.entrySet().stream().findFirst().get().getKey() + " not declared in this scope",
+                        ExceptionContext.getLineNumber(),
+                        ExceptionContext.getFunctionName()
+                );
             else
                 return;
         }
@@ -195,7 +199,11 @@ public class SymbolTable {
         SymbolTableItem item = scopeStack.get(0).items.get(identifier);
         if (item != null) {
             if(item.getAddress() < 0)
-                throw new RuntimeException("undeclared function " + identifier);
+                throw new GeneralSemanticAnalysisException(
+                        "Undeclared function" + identifier,
+                        ExceptionContext.getLineNumber(),
+                        ExceptionContext.getFunctionName()
+                );
             item.setUsed();
             return item;
         }
