@@ -19,25 +19,8 @@ public class SemanticFunctionGenerator extends BaseSemanticCodeGenerator<Functio
 
     @Override
     public void run() throws SemanticAnalysisException {
-        // Add function to symbol table
-        CodeBuilder.addInstruction(new Instruction(EInstruction.INT, 0, 3));
-        getSymbolTable().getItem(getNode().getIdentifier()).setAddress(CodeBuilder.getLineNumber());
-        ExceptionContext.setFunctionName(getNode().getIdentifier());
-
-        getSymbolTable().enterScope(true, getNode().getFunctionBlock().getStatements().getVariablesCount()); // <<------ new scope here
-
-        // Add parameters to symbol table
         int parametersCount = getNode().getParameters() != null ? getNode().getParameters().getParameters().size() : 0;
-        for (int i = parametersCount; i > 0; i--) {
-            CodeBuilder.addInstruction(new Instruction(EInstruction.LOD, 0, -i));
-
-            getSymbolTable().addItem(new SymbolTableItem(
-                    getNode().getParameters().getParameters().get(parametersCount - i).getIdentifier(),
-                    0,
-                    getSymbolTable().assignAddress(),
-                    getNode().getParameters().getParameters().get(parametersCount - i).getDataType() == EDataType.INT ? ESymbolTableType.INT : ESymbolTableType.BOOL
-            ));
-        }
+        functionSetUp(parametersCount);
 
         if (getNode().getFunctionBlock() == null) {
             getSymbolTable().exitScope();
@@ -60,8 +43,32 @@ public class SemanticFunctionGenerator extends BaseSemanticCodeGenerator<Functio
         if (!mustReturn && lastInstruction.getInstruction() != EInstruction.RET) {
             CodeBuilder.addInstruction(new Instruction(EInstruction.RET, 0, 0));
         }
+        getSymbolTable().getItem(getNode().getIdentifier()).setLastAddress(CodeBuilder.getLineNumber());
+        System.out.println("first address is " +  getSymbolTable().getItem(getNode().getIdentifier()).getAddress() +  " last address of " + getNode().getIdentifier() + " is " + CodeBuilder.getLineNumber());
+
         if (mustReturn && lastInstruction.getInstruction() != EInstruction.RET) {
             throw new GeneralSemanticAnalysisException("Function must return a value", ExceptionContext.getLineNumber(), ExceptionContext.getFunctionName());
+        }
+    }
+
+    private void functionSetUp(int parametersCount) throws SemanticAnalysisException {
+        // Add function address into symbol table and initialize stack
+        CodeBuilder.addInstruction(new Instruction(EInstruction.INT, 0, 3));
+        getSymbolTable().getItem(getNode().getIdentifier()).setAddress(CodeBuilder.getLineNumber());
+        ExceptionContext.setFunctionName(getNode().getIdentifier());
+
+        //enter function scope
+        getSymbolTable().enterScope(true, getNode().getFunctionBlock().getStatements().getVariablesCount());
+
+        // Load parameters and add them into function scope
+        for (int i = parametersCount; i > 0; i--) {
+            CodeBuilder.addInstruction(new Instruction(EInstruction.LOD, 0, -i));
+
+            getSymbolTable().addItem(new SymbolTableItem(
+                    getNode().getParameters().getParameters().get(parametersCount - i).getIdentifier(),
+                    getSymbolTable().assignAddress(),
+                    getNode().getParameters().getParameters().get(parametersCount - i).getDataType() == EDataType.INT ? ESymbolTableType.INT : ESymbolTableType.BOOL
+            ));
         }
     }
 }

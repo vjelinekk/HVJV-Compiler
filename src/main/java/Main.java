@@ -40,7 +40,6 @@ public class Main {
 
         Compiler compiler = new Compiler(input, outputFile);
         compiler.compile();
-        CodeBuilder.generateCode(outputFile);
     }
 
     /**

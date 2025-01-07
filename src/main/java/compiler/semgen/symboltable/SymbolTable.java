@@ -27,7 +27,7 @@ public class SymbolTable {
         public final Map<String, SymbolTableItem> items;
         public final boolean isFunctionScope;
         private int freeAddress;
-        private int allocated;
+        private int freeMemory;
         private int allocatedInThisScope;
         private final Map<String, Pair> gotoLabels;
         private final Map<String, List<Pair>> requiredLabels;
@@ -36,17 +36,17 @@ public class SymbolTable {
             this.items = new HashMap<>();
             this.isFunctionScope = true;
             this.freeAddress = 3;
-            this.allocated = 0;
+            this.freeMemory = 0;
             this.allocatedInThisScope = 0;
             this.gotoLabels = new HashMap<>();
             this.requiredLabels = new HashMap<>();
         }
 
-        public Scope(int freeAddress, int allocated) {
+        public Scope(int freeAddress, int freeMemory) {
             this.items = new HashMap<>();
             this.isFunctionScope = false;
             this.freeAddress = freeAddress;
-            this.allocated = allocated;
+            this.freeMemory = freeMemory;
             this.allocatedInThisScope = 0;
             this.gotoLabels = new HashMap<>();
             this.requiredLabels = new HashMap<>();
@@ -90,9 +90,6 @@ public class SymbolTable {
             return gotoLabels.get(label).address;
         }
 
-        public boolean containsLabel(String label) {
-            return gotoLabels.containsKey(label);
-        }
 
         public void deallocate(Scope parentScope) throws SemanticAnalysisException {
             if (allocatedInThisScope > 0)
@@ -108,22 +105,22 @@ public class SymbolTable {
             // share newly created labels with parent
             for(Map.Entry<String, Pair> entry : gotoLabels.entrySet()) {
                 parentScope.addGotoLabel(entry.getKey(), entry.getValue().address, entry.getValue().currentMemory);
-                System.out.println("newly created " + entry.getKey());
+                System.out.println("registered " + entry.getKey());
             }
             System.out.println("----------------------");
         }
 
         public void allocateMemory(int variablesCount) {
-            if(variablesCount > allocated) {
-                allocatedInThisScope = variablesCount - allocated;
-                allocated += allocatedInThisScope;
+            if(variablesCount > freeMemory) {
+                allocatedInThisScope = variablesCount - freeMemory;
+                freeMemory += allocatedInThisScope;
                 CodeBuilder.addInstruction(new Instruction(EInstruction.INT,0, allocatedInThisScope));
             }
         }
 
         public int assignAddress() {
-            if(allocated > 0)
-                allocated--;
+            if(freeMemory > 0)
+                freeMemory--;
             return freeAddress++;
         }
     }
@@ -144,26 +141,26 @@ public class SymbolTable {
         }
 
         Scope lastScope = scopeStack.peek();
-        Scope newScope = new Scope(lastScope.freeAddress, lastScope.allocated);
+        Scope newScope = new Scope(lastScope.freeAddress, lastScope.freeMemory);
         newScope.allocateMemory(variablesCount);
         scopeStack.push(newScope);
     }
 
     public void exitScope() throws SemanticAnalysisException {
-        if (scopeStack.size() == 1) {
+        Scope exiting = scopeStack.pop();
+
+        if (scopeStack.empty()) {
             throw new RuntimeException("Cannot exit global scope");
         }
 
-        Scope exiting = scopeStack.pop();
-        exiting.deallocate(scopeStack.peek());
-
-        if (exiting.isFunctionScope && !exiting.requiredLabels.entrySet().isEmpty()) {
-            throw new RuntimeException("Label " + exiting.requiredLabels.entrySet().stream().findFirst().get().getKey() + " not declared in this scope");
+        if (exiting.isFunctionScope) {
+            if (!exiting.requiredLabels.entrySet().isEmpty())
+                throw new RuntimeException("Label " + exiting.requiredLabels.entrySet().stream().findFirst().get().getKey() + " not declared in this scope");
+            else
+                return;
         }
-    }
 
-    public boolean isCurrentFunctionScope() {
-        return scopeStack.peek().isFunctionScope;
+        exiting.deallocate(scopeStack.peek());
     }
 
     public void addItem(SymbolTableItem symbolTableItem) throws SemanticAnalysisException {
@@ -197,6 +194,7 @@ public class SymbolTable {
     public SymbolTableItem getFromGlobalScope(String identifier) throws SemanticAnalysisException {
         SymbolTableItem item = scopeStack.get(0).items.get(identifier);
         if (item != null) {
+            item.setUsed();
             return item;
         }
         throw new GeneralSemanticAnalysisException("Undeclared function " + identifier, ExceptionContext.getLineNumber(), ExceptionContext.getFunctionName());
@@ -210,7 +208,7 @@ public class SymbolTable {
     }
 
     public int getCurrentScopeFreeMemory() {
-        return scopeStack.peek().allocated;
+        return scopeStack.peek().freeMemory;
     }
 
     public void addGotoLabel(String label, int address) throws SemanticAnalysisException {
@@ -249,6 +247,10 @@ public class SymbolTable {
         }
     }
 
+    public SymbolTableItem[] getFunctions() {
+        return scopeStack.get(0).items.values().toArray(new SymbolTableItem[0]);
+    }
+
     @Override
     public String toString() {
         StringBuilder sb = new StringBuilder();
@@ -260,14 +262,6 @@ public class SymbolTable {
             sb.append("}\n");
         }
         return sb.toString();
-    }
-
-    private Scope getFunctionScope() {
-        for (int i = scopeStack.size() - 1; i >= 0; i--) {
-            Scope scope = scopeStack.get(i);
-            if (scope.isFunctionScope) return scope;
-        }
-        return null;
     }
 
     private int getCurrentMemory() {

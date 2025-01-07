@@ -52,15 +52,16 @@ public class Compiler {
         ParseTree tree = parser.program();
 
         Program program = new ProgramVisitor().visit(tree);
-//        System.out.println(program);
         SemanticCodeGenerator semanticCodeGenerator = new SemanticCodeGenerator(program);
         try {
             semanticCodeGenerator.run();
         } catch (SemanticAnalysisException e) {
-            System.err.println(e.toString());
+            System.err.println(e);
             e.printStackTrace();
             System.exit(1);
         }
         CodeBuilder.generateCode(output);
+        CodeBuilder.removeUnusedCode();
+        CodeBuilder.generateCode("optimized_" + output);
     }
 }
