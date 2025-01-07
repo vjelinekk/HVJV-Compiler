@@ -1,7 +1,6 @@
 import compiler.Compiler;
 import org.antlr.v4.runtime.CharStream;
 import validation.CompilerArgumentsValidation;
-import validation.CompilerInputValidation;
 
 import java.io.IOException;
 

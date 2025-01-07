@@ -36,7 +36,7 @@ public class CompilerArgumentsValidation {
         this.outputFileName = args[1];
 
         if (args.length > 2) {
-            if (args[2].equals("-o")) {
+            if (args[2].equals(OPTIMIZATION_FLAG)) {
                 this.isOptimizationEnabled = true;
                 if (args.length == 4) {
                     this.optimizationFileName = args[3];
