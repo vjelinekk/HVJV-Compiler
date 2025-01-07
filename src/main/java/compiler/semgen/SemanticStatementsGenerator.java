@@ -186,6 +186,7 @@ public class SemanticStatementsGenerator extends BaseSemanticCodeGenerator<State
                     createGoToJump(gotoStatement.getLabel(), iterator);
                     break;
                 case TERNARY_ASSIGNMENT:
+                    // a = (a > 0) ? 1 : 0;
                     TernaryOperatorAssignment ternary = ((StatementTernaryOperatorAssignment) statement).getTernaryOperatorAssignment();
                     ExceptionContext.setLineNumber(statement.getLineNumber());
                     Expression condition = ternary.getCondition();
@@ -216,8 +217,6 @@ public class SemanticStatementsGenerator extends BaseSemanticCodeGenerator<State
                     CodeBuilder.addInstruction(new Instruction(EInstruction.STO, 0, item.getAddress()));
                     CodeBuilder.getPlaceholderInstruction(ternaryPlaceholderEnd).setArg2(CodeBuilder.getLineNumber() + 1);
                     break;
-                case TERNARY_EXPRESSION:
-                    break;
                 default:
                     break;
             }
@@ -228,43 +227,16 @@ public class SemanticStatementsGenerator extends BaseSemanticCodeGenerator<State
         int jumpAddress = getSymbolTable().getGotoLabelAddress(label);
 
         if(jumpAddress > 0) {
-            while(!getSymbolTable().containsGoToLabel(label)) {
-                getSymbolTable().exitScope();
-            }
-            // TODO: decrease stack of current scope before jump to label, problem is: int a; int b; Label l: ; --> a = 10; int c <--- goto
+            getSymbolTable().returnToLabel(label);
             CodeBuilder.addInstruction(new Instruction(EInstruction.JMP, 0, jumpAddress));
         }
         else {
+            CodeBuilder.addInstruction(new Instruction(EInstruction.INT, 0, 0));
             int JumpInstructionId = CodeBuilder.addPlaceholderInstruction(new Instruction(EInstruction.JMP, 0, 0));
             getSymbolTable().addRequiredGoToLabel(label, JumpInstructionId);
-
-            while(iterator.hasNext()) {
-                if(iterator.next().getStatementType() == EStatementType.LABEL) {
-                    iterator.previous();
-                    break;
-                }
-            }
-
-            if(!iterator.hasNext()) {
-                if(getSymbolTable().isCurrentFunctionScope())
-                    throw new RuntimeException("undefined goto label");
-                getSymbolTable().exitScope();
-            }
         }
 
     }
-    /*
-    | 10 |
-    if() {
-    label:
-    int x = 10;
-    if() {
-        int y = 10;
-        goto label;
-    }
-
-    }
-     */
 
     private void createDeclaration(Declaration declaration) throws SemanticAnalysisException {
         boolean hasFreeSpace = getSymbolTable().getCurrentScopeFreeMemory() > 0;

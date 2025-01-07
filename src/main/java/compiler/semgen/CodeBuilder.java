@@ -33,9 +33,6 @@ public class CodeBuilder {
         return instructions.get(instructions.size() - 1);
     }
 
-    public static Instruction getLastInstructionAndRemove() {
-        return instructions.remove(instructions.size() - 1);
-    }
 
     public static void generateCode(String fileName) {
         try {

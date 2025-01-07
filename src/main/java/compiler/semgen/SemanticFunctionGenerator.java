@@ -24,7 +24,7 @@ public class SemanticFunctionGenerator extends BaseSemanticCodeGenerator<Functio
         getSymbolTable().getItem(getNode().getIdentifier()).setAddress(CodeBuilder.getLineNumber());
         ExceptionContext.setFunctionName(getNode().getIdentifier());
 
-        getSymbolTable().enterScope(true, 0); // <<------ new scope here
+        getSymbolTable().enterScope(true, getNode().getFunctionBlock().getStatements().getVariablesCount()); // <<------ new scope here
 
         // Add parameters to symbol table
         int parametersCount = getNode().getParameters() != null ? getNode().getParameters().getParameters().size() : 0;
@@ -53,9 +53,8 @@ public class SemanticFunctionGenerator extends BaseSemanticCodeGenerator<Functio
                 -(parametersCount + 1)
         );
         statementsAnalyzer.run();
-        Instruction lastInstruction = CodeBuilder.getLastInstructionAndRemove();
+        Instruction lastInstruction = CodeBuilder.getLastInstruction();
         getSymbolTable().exitScope();
-        CodeBuilder.addInstruction(lastInstruction);
 
         boolean mustReturn = getNode().getReturnType() == EReturnType.BOOL || getNode().getReturnType() == EReturnType.INT;
         if (!mustReturn && lastInstruction.getInstruction() != EInstruction.RET) {

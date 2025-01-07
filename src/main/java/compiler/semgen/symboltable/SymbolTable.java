@@ -52,8 +52,9 @@ public class SymbolTable {
             gotoLabels.put(label, address);
 
             if(requiredLabels.containsKey(label)) {
-                for (int instructionId : requiredLabels.get(label)) {
-                    CodeBuilder.getPlaceholderInstruction(instructionId).setArg2(address);
+                for (int i = 1; i < requiredLabels.size(); i = i + 2) {
+                    CodeBuilder.getPlaceholderInstruction(requiredLabels.get(label).get(i) - 1).setArg2(requiredLabels.get(label).get(i - 1));
+                    CodeBuilder.getPlaceholderInstruction(requiredLabels.get(label).get(i)).setArg2(address);
                 }
                 requiredLabels.remove(label);
             }
@@ -61,24 +62,21 @@ public class SymbolTable {
 
         public void addRequiredLabel(String label, int jumpInstructionId) {
             if(requiredLabels.containsKey(label)) {
-                requiredLabels.get(label).add(jumpInstructionId);
+                List<Integer> list = requiredLabels.get(label);
+
+                list.add(0);
+                list.add(jumpInstructionId);
             }
             else {
                 List<Integer> newList = new ArrayList<>();
+                newList.add(0);
                 newList.add(jumpInstructionId);
                 requiredLabels.put(label, newList);
             }
         }
 
 
-        public int  getGotoLabelAddress(String label) throws SemanticAnalysisException {
-//            if (!gotoLabels.containsKey(label)) {
-//                throw new GeneralSemanticAnalysisException(
-//                        "Label " + label + " not declared in this scope",
-//                        ExceptionContext.getLineNumber(),
-//                        ExceptionContext.getFunctionName()
-//                );
-//            }
+        public int getGotoLabelAddress(String label) throws SemanticAnalysisException {
             if (!gotoLabels.containsKey(label))
                 return -1;
 
@@ -101,14 +99,19 @@ public class SymbolTable {
             }
         }
 
-        public void deallocate(Scope parentScope) {
+        public void deallocate(Scope parentScope) throws SemanticAnalysisException {
             if (allocatedInThisScope > 0)
                 CodeBuilder.addInstruction(new Instruction(EInstruction.INT,0, -allocatedInThisScope));
 
+            // share required labels with parent
             for(Map.Entry<String, List<Integer>> entry : requiredLabels.entrySet())
                 for(int instructionId : entry.getValue()) {
                     parentScope.addRequiredLabel(entry.getKey(), instructionId);
                 }
+
+            // share newly created labels with parent
+            for(Map.Entry<String, Integer> entry : gotoLabels.entrySet())
+                parentScope.addGotoLabel(entry.getKey(), entry.getValue());
         }
 
         public void allocateMemory(int variablesCount) {
@@ -135,7 +138,9 @@ public class SymbolTable {
 
     public void enterScope(boolean isFunctionScope, int variablesCount) {
         if (isFunctionScope) {
-            scopeStack.push(new Scope());
+            Scope fcnScope = new Scope();
+            fcnScope.allocateMemory(variablesCount);
+            scopeStack.push(fcnScope);
             return;
         }
 
@@ -145,12 +150,22 @@ public class SymbolTable {
         scopeStack.push(newScope);
     }
 
-    public void exitScope() throws GeneralSemanticAnalysisException {
+    public void exitScope() throws SemanticAnalysisException {
+        if(isCurrentFunctionScope())
+        System.out.print("(function)");
+        else
+        System.out.print("(basic)");
+        System.out.println("calling exit scope, stack size is " + scopeStack.size());
         if (scopeStack.size() == 1) {
             throw new RuntimeException("Cannot exit global scope");
         }
+
         Scope exiting = scopeStack.pop();
         exiting.deallocate(scopeStack.peek());
+
+        if (exiting.isFunctionScope && !exiting.requiredLabels.entrySet().isEmpty()) {
+            throw new RuntimeException("Label " + exiting.requiredLabels.entrySet().stream().findFirst().get().getKey() + " not declared in this scope");
+        }
     }
 
     public boolean isCurrentFunctionScope() {
@@ -212,10 +227,6 @@ public class SymbolTable {
         scopeStack.peek().addRequiredLabel(label, jumpInstructionId);
     }
 
-    public boolean containsGoToLabel(String label) {
-        return scopeStack.get(scopeStack.size() - 1).containsLabel(label);
-    }
-
     public int getGotoLabelAddress(String label) throws SemanticAnalysisException {
         int address = -1;
 
@@ -225,16 +236,26 @@ public class SymbolTable {
             address = scope.getGotoLabelAddress(label);
             if(address > 0)
                 return address;
-
-            if(scope.isFunctionScope)
-                throw new RuntimeException("Label " + label + " not declared in this scope");
         }
 
         return address;
     }
+    public void returnToLabel(String label) {
+        int count = 0;
+        for (int i = scopeStack.size() - 1;i >= 0; i--) {
+            Scope scope = scopeStack.get(i);
+
+            if(!scope.containsLabel(label)) {
+                count += scope.allocatedInThisScope;
+            } else break;
+        }
+
+        if(count > 0)
+            CodeBuilder.addInstruction(new Instruction(EInstruction.INT, 0 , -count));
+    }
 
     public void checkIfDeclarationIsAfterGotoLabel(int address) throws SemanticAnalysisException {
-        scopeStack.peek().checkIfDeclarationIsAfterGotoLabel(address);
+//        scopeStack.peek().checkIfDeclarationIsAfterGotoLabel(address);
     }
 
     @Override
