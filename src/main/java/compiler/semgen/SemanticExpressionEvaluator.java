@@ -76,7 +76,7 @@ public class SemanticExpressionEvaluator {
                 return EDataType.BOOL;
             case IDENTIFIER:
                 SymbolTableItem i = symbolTable.getItem(((ExpIdentifier)expression).getIdentifier());
-                CodeBuilder.addInstruction(new Instruction(EInstruction.LOD, i.getLevel(), i.getAddress()));
+                CodeBuilder.addInstruction(new Instruction(EInstruction.LOD, 0, i.getAddress()));
 
                 if (i.getType() == ESymbolTableType.FUNCTION)
                     throw new GeneralSemanticAnalysisException("Value expected, got function", ExceptionContext.getLineNumber(), ExceptionContext.getFunctionName());

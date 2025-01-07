@@ -9,29 +9,35 @@ import java.util.List;
 
 public class SymbolTableItem {
     private final String id;
-    private int level;
     private int address;
+    private int lastAddress;
+    private boolean used;
     private final ESymbolTableType type;
     private EReturnType returnType;
     private List<EDataType> parametersTypes;
 
-    public SymbolTableItem(String id, int level, int address, ESymbolTableType type) {
+    public SymbolTableItem(String id, int address, ESymbolTableType type) {
         this.id = id;
-        this.level = level;
         this.address = address;
+        this.lastAddress = 0;
         this.type = type;
+        this.used = false;
     }
 
     public String getId() {
         return id;
     }
 
-    public int getLevel() {
-        return level;
-    }
-
     public int getAddress() {
         return address;
+    }
+
+    public int getLastAddress() {
+        return lastAddress;
+    }
+
+    public boolean isUsed() {
+        return used;
     }
 
     public ESymbolTableType getType() {
@@ -58,9 +64,7 @@ public class SymbolTableItem {
         this.address = address;
     }
 
-    public void setLevel(int level) {
-        this.level = level;
-    }
+    public void setLastAddress(int lastAddress) {this.lastAddress = lastAddress;}
 
     public void setReturnType(EReturnType returnType) {
         if (type != ESymbolTableType.FUNCTION) {
@@ -78,11 +82,15 @@ public class SymbolTableItem {
         this.parametersTypes = parametersTypes;
     }
 
+    public void setUsed() {
+        this.used = true;
+    }
+
     @Override
     public String toString() {
         return "SymbolTableItem{" +
                 "id='" + id + '\'' +
-                ", level=" + level +
+                ", used=" + used +
                 ", address=" + address +
                 ", type=" + type +
                 ", returnType=" + returnType +

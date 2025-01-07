@@ -1,52 +1,8 @@
 void main() {
-    int a = 100;
-    int b = 200;
+    int a = 0;
+    int b = 1;
+    int c = 2;
+    int d = 3;
 
-    for(int i = 1;i < 3; i = i + 1) {
-       int c = 300;
-       int d = 400;
-       int e = 500;
-        for(int j = 2;j < 4; j = j + 1) {
-            int f = 600;
-            int g = c + d;
-            for(int k = 3;k < 5;k = k + 1) {
-                if( k < 4)
-                 {int q1 = 69;
-                      int q2 = 69;
-                      int q3 = 69;
-                      int q4 = 69;
-                      int q5 = 69;
-                      int q6 = 69;
-                      int q7 = 69;
-                      int q8 = 69;
-                      int q9 = 69;
-                      int q10 = 69;}
-                else {
-                int q1 = 88;
-                    int q2 = 88;
-                    int q3 = 88;
-                    int q4 = 88;
-                    int q5 = 88;
-                    int q6 = 88;
-                    int q7 = 88;
-                    int q8 = 88;
-                    int q9 = 88;
-                    int q10 = 88;
-                }
-            }
-        }
-        int f = 900;
-        int g = 1001;
-    }
-    int c = a + b;
-    int q1 = 69;
-    int q2 = 69;
-    int q3 = 69;
-    int q4 = 69;
-    int q5 = 69;
-    int q6 = 69;
-    int q7 = 69;
-    int q8 = 69;
-    int q9 = 69;
-    int q10 = 69;
+   return;
 }

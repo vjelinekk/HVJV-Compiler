@@ -27,7 +27,8 @@ public class SemanticFunctionsGenerator extends BaseSemanticCodeGenerator<Functi
             functionAnalyzer.run();
         }
 
-        CodeBuilder.mainAddress = getSymbolTable().getItem("main").getAddress();
+        CodeBuilder.insertMainAddress( getSymbolTable().getItem("main").getAddress());
+        CodeBuilder.analyzeFunctionsCode(getSymbolTable());
     }
 
     private void addFunctionsToSymbolTable() throws SemanticAnalysisException {
@@ -47,11 +48,7 @@ public class SemanticFunctionsGenerator extends BaseSemanticCodeGenerator<Functi
             }
 
             SymbolTableItem item = new SymbolTableItem(
-                    function.getIdentifier(),
-                    0,
-                    -1,
-                    ESymbolTableType.FUNCTION
-            );
+                    function.getIdentifier(), -1, ESymbolTableType.FUNCTION);
             item.setReturnType(function.getReturnType());
             item.setParametersTypes(function.getParametersTypes());
             getSymbolTable().addItem(item);
