@@ -44,7 +44,6 @@ public class SemanticFunctionGenerator extends BaseSemanticCodeGenerator<Functio
             CodeBuilder.addInstruction(new Instruction(EInstruction.RET, 0, 0));
         }
         getSymbolTable().getItem(getNode().getIdentifier()).setLastAddress(CodeBuilder.getLineNumber());
-        System.out.println("first address is " +  getSymbolTable().getItem(getNode().getIdentifier()).getAddress() +  " last address of " + getNode().getIdentifier() + " is " + CodeBuilder.getLineNumber());
 
         if (mustReturn && lastInstruction.getInstruction() != EInstruction.RET) {
             throw new GeneralSemanticAnalysisException("Function must return a value", ExceptionContext.getLineNumber(), ExceptionContext.getFunctionName());

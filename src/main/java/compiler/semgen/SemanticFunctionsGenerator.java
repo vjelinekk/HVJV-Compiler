@@ -27,7 +27,7 @@ public class SemanticFunctionsGenerator extends BaseSemanticCodeGenerator<Functi
             functionAnalyzer.run();
         }
 
-        CodeBuilder.insertMain( getSymbolTable().getItem("main").getAddress());
+        CodeBuilder.insertMainAddress( getSymbolTable().getItem("main").getAddress());
         CodeBuilder.analyzeFunctionsCode(getSymbolTable());
     }
 

@@ -194,6 +194,8 @@ public class SymbolTable {
     public SymbolTableItem getFromGlobalScope(String identifier) throws SemanticAnalysisException {
         SymbolTableItem item = scopeStack.get(0).items.get(identifier);
         if (item != null) {
+            if(item.getAddress() < 0)
+                throw new RuntimeException("undeclared function " + identifier);
             item.setUsed();
             return item;
         }

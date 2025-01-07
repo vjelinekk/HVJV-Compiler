@@ -1,21 +1,42 @@
-void main() {
-    if(true) {
-    int a = 10;
-        return;
-    }
+void c() {
+ int b = 10;
+ int c = 45;
+ int f = 10;
 }
 
+
 void a() {
+     if (true) {
+                int q1 = 88;
+                int q2 = 88;
+                int q3 = 88;
+                int q4 = 88;
+                int q5 = 88;
+
+                if (true) {
+                    int q6 = 88;
+                    int q7 = 88;
+                    int q8 = 88;
+                    int q9 = 88;
+                    int q10 = 88;
+
+                    if (true) {
+                        int q11 = 88;
+                        int q12 = 88;
+                        int q13 = 88;
+                        int q14 = 88;
+                        int q15 = 88;
+                    }
+                }
+            }
+}
+
+void main() {
  int b = 10;
- int c = 45;
- int f = 10;
+ b = b;
+ c();
 }
 void b() {
- int b = 10;
- int c = 45;
- int f = 10;
-}
-void c() {
  int b = 10;
  int c = 45;
  int f = 10;

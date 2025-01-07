@@ -42,6 +42,7 @@ public class CodeBuilder {
     }
 
     public static void removeUnusedCode() {
+        analyzeDuplicitiesAndPairs();
 
         List<Instruction> newInstructions = new ArrayList<>();
         int shift = 0;
@@ -62,7 +63,8 @@ public class CodeBuilder {
                     || inst.getInstruction() == EInstruction.JMC) {
 
             int targetIndex = inst.getArg2();
-            inst.setArg2(indexShiftMap[targetIndex]);
+            if(targetIndex < instructions.size() && targetIndex > 0)
+                inst.setArg2(indexShiftMap[targetIndex]);
             }
         }
 
@@ -83,9 +85,37 @@ public class CodeBuilder {
         }
     }
 
+    public static void analyzeDuplicitiesAndPairs() {
+
+        for (int i = 0; i < instructions.size() - 1; i++) {
+            Instruction current = instructions.get(i);
+            Instruction next = instructions.get(i + 1);
+            if(current.getInstruction() == EInstruction.INT && next.getInstruction() == EInstruction.INT) {
+                int sum = current.getArg2();
+                while (instructions.get(i + 1).getInstruction() == EInstruction.INT) {
+                    sum += instructions.get(i + 1).getArg2();
+                    instructionsToRemove.add(i + 1);
+                    i++;
+                }
+                current.setArg2(sum);
+                continue;
+            }
+
+            if(current.getInstruction() == EInstruction.LOD && next.getInstruction() == EInstruction.STO) {
+                instructionsToRemove.add(i);
+                if(current.getArg2() == next.getArg2()) {
+                    instructionsToRemove.add(i);
+                    instructionsToRemove.add(i + 1);
+                    i++;
+                }
+            }
+        }
+
+    }
 
 
-    public static void insertMain(int mainAddress) {
+
+    public static void insertMainAddress(int mainAddress) {
         instructions.get(0).setArg2(mainAddress);
     }
 
