@@ -150,20 +150,15 @@ public class SymbolTable {
     }
 
     public void exitScope() throws SemanticAnalysisException {
-        if (scopeStack.size() == 1) {
-            throw new RuntimeException("Cannot exit global scope");
-        }
-
         Scope exiting = scopeStack.pop();
-        exiting.deallocate(scopeStack.peek());
 
-        if (exiting.isFunctionScope && !exiting.requiredLabels.entrySet().isEmpty()) {
-            throw new RuntimeException("Label " + exiting.requiredLabels.entrySet().stream().findFirst().get().getKey() + " not declared in this scope");
+        if (scopeStack.empty()) {
+            if (!exiting.requiredLabels.entrySet().isEmpty())
+                throw new RuntimeException("Label " + exiting.requiredLabels.entrySet().stream().findFirst().get().getKey() + " not declared in this scope");
+            else
+                return;
         }
-    }
-
-    public boolean isCurrentFunctionScope() {
-        return scopeStack.peek().isFunctionScope;
+        exiting.deallocate(scopeStack.peek());
     }
 
     public void addItem(SymbolTableItem symbolTableItem) throws SemanticAnalysisException {
@@ -260,14 +255,6 @@ public class SymbolTable {
             sb.append("}\n");
         }
         return sb.toString();
-    }
-
-    private Scope getFunctionScope() {
-        for (int i = scopeStack.size() - 1; i >= 0; i--) {
-            Scope scope = scopeStack.get(i);
-            if (scope.isFunctionScope) return scope;
-        }
-        return null;
     }
 
     private int getCurrentMemory() {

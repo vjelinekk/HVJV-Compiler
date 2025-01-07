@@ -28,6 +28,7 @@ public class SemanticFunctionsGenerator extends BaseSemanticCodeGenerator<Functi
         }
 
         CodeBuilder.mainAddress = getSymbolTable().getItem("main").getAddress();
+        getSymbolTable().exitScope();
     }
 
     private void addFunctionsToSymbolTable() throws SemanticAnalysisException {
