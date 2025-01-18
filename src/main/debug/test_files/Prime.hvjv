@@ -1,0 +1,22 @@
+int modulo(int dividend, int divisor) {
+    int quotient = dividend / divisor;
+    int remainder = dividend - (quotient * divisor);
+    return remainder;
+}
+
+bool isPrime(int n) {
+    if (n <= 1) {
+        return false;
+    }
+
+    for (int i = 2; i <= n/2; i = i + 1) {
+        if (modulo(n, i) == 0) {
+            return false;
+        }
+    }
+    return true;
+}
+
+void main() {
+    bool isPrime = isPrime(29);
+}

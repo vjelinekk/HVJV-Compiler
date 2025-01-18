@@ -29,4 +29,11 @@ public class Parameters {
         }
         return sb.toString();
     }
+
+    public int getCount() {
+        if (parameters == null || parameters.isEmpty()) {
+            return 0;
+        }
+        return parameters.size();
+    }
 }

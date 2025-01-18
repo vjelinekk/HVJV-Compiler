@@ -200,7 +200,7 @@ public class SymbolTable {
         if (item != null) {
             if(item.getAddress() < 0)
                 throw new GeneralSemanticAnalysisException(
-                        "Undeclared function" + identifier,
+                        "Undeclared function " + identifier,
                         ExceptionContext.getLineNumber(),
                         ExceptionContext.getFunctionName()
                 );

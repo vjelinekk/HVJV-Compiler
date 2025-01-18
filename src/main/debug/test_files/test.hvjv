@@ -1,0 +1,9 @@
+int div(int a,int b) {
+    int c = 300;
+    int d = 400;
+    return a / b;
+}
+
+void main() {
+   div(100, 200);
+}
