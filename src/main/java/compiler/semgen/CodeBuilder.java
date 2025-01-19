@@ -42,7 +42,7 @@ public class CodeBuilder {
     }
 
     public static void removeUnusedCode() {
-        analyzeDuplicitiesAndPairs();
+        // analyzeDuplicitiesAndPairs();
 
         List<Instruction> newInstructions = new ArrayList<>();
         int shift = 0;
@@ -85,6 +85,8 @@ public class CodeBuilder {
         }
     }
 
+
+    // doesnt work with goto so we didnt used it
     public static void analyzeDuplicitiesAndPairs() {
 
         for (int i = 0; i < instructions.size() - 1; i++) {
@@ -102,7 +104,6 @@ public class CodeBuilder {
             }
 
             if(current.getInstruction() == EInstruction.LOD && next.getInstruction() == EInstruction.STO) {
-                instructionsToRemove.add(i);
                 if(current.getArg2() == next.getArg2()) {
                     instructionsToRemove.add(i);
                     instructionsToRemove.add(i + 1);
