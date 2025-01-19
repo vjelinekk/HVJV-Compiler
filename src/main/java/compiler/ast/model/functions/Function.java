@@ -59,4 +59,11 @@ public class Function {
 
         return returnType + " " + identifier + "(" + parameters + ")" + " {\n" + functionBlock.toString() + "}\n";
     }
+
+    public int getParametersCount() {
+        if (parameters == null) {
+            return 0;
+        }
+        return parameters.getCount();
+    }
 }

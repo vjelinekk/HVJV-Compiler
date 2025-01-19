@@ -57,17 +57,23 @@ public class SemanticFunctionGenerator extends BaseSemanticCodeGenerator<Functio
         ExceptionContext.setFunctionName(getNode().getIdentifier());
 
         //enter function scope
-        getSymbolTable().enterScope(true, getNode().getFunctionBlock().getStatements().getVariablesCount());
+        getSymbolTable().enterScope(true, getNode().getFunctionBlock().getStatements().getVariablesCount() + getNode().getParametersCount());
 
         // Load parameters and add them into function scope
         for (int i = parametersCount; i > 0; i--) {
             CodeBuilder.addInstruction(new Instruction(EInstruction.LOD, 0, -i));
+            boolean hasFreeSpace = getSymbolTable().getCurrentScopeFreeMemory() > 0;
 
-            getSymbolTable().addItem(new SymbolTableItem(
+            SymbolTableItem parameter = new SymbolTableItem(
                     getNode().getParameters().getParameters().get(parametersCount - i).getIdentifier(),
                     getSymbolTable().assignAddress(),
                     getNode().getParameters().getParameters().get(parametersCount - i).getDataType() == EDataType.INT ? ESymbolTableType.INT : ESymbolTableType.BOOL
-            ));
+            );
+
+            getSymbolTable().addItem(parameter);
+
+            if(hasFreeSpace)
+                CodeBuilder.addInstruction(new Instruction(EInstruction.STO, 0, parameter.getAddress()));
         }
     }
 }
