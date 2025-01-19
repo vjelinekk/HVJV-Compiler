@@ -1,0 +1,11 @@
+void main() {
+    int a = 0;
+    int b = 1;
+    int c = 0;
+
+    c = (a > b) ? a : b;
+    int d = a + b + c;
+
+    int e = 0;
+    e = (a > b) ? 10 + 0 * 5 : 2 * -1;
+}
