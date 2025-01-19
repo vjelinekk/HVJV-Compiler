@@ -1,0 +1,11 @@
+void main() {
+    if(true) {
+    int a = 100;
+    int b = 100;
+        if(true) {
+            int c = 100;
+            goto ga;
+        }
+        ga:
+    }
+}
